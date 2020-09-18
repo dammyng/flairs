@@ -1,5 +1,0 @@
-> Created user proto file
-> Added User service in proto file
-> Generated go code using protoc shared-libraries/models/appuser/proto/user.proto --go_out=plugins=grpc:.
-// Todo review proto byte size for user object properties
-

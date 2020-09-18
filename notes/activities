@@ -1,0 +1,16 @@
+SH > Created user proto file
+SH > Added User service in proto file
+SH > Generated go code using protoc shared-libraries/models/appuser/proto/user.proto --go_out=plugins=grpc:.
+
+SH // Review proto byte size for user object properties
+
+FA > Created a simple http server
+FA > Create the rotes in route.go
+FA > Started handling request with handler.go
+
+FA > Conflicted about using nested object in proto file because of the 2 byte for over 16 reserved numbers, nested object will be harder to unmarshal since the front end is sending JSON - Graph QL might be a better object - but for now I would continue - in the future can modify the proto and handle the unmarshalling
+
+Next > Implement the database layer
+
+
+
