@@ -9,11 +9,14 @@ import (
 
 // ServiceHandler represent routes dependencies
 type ServiceHandler struct {
+	DbHandler persistence.DatabaseHandler
 }
 
 // NewServiceHandler : Service handler constructor
-func NewServiceHandler() ServiceHandler {
-	return ServiceHandler{}
+func NewServiceHandler(dbHandler persistence.DatabaseHandler) ServiceHandler {
+	return ServiceHandler{
+		DbHandler: dbHandler,
+	}
 }
 
 //Register a new user
@@ -27,6 +30,7 @@ func (serviceHandler ServiceHandler) Register(w http.ResponseWriter, r *http.Req
 	payload.Email = strings.ToLower(payload.Email)
 
 	// Find user
+	if _, err = serviceHandler.DbHandler.FindUser()
 	// if user exist return a duplicate error
 	// return
 

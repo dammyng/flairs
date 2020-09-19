@@ -12,5 +12,12 @@ FA > Conflicted about using nested object in proto file because of the 2 byte fo
 
 Next > Implement the database layer
 
+> Created db config struct
+> Initialize mysql layer with constructor
+> figure out how to use local module instead of publishing shared to github repo
+
+Next > Implement find user
+
+
 
 
