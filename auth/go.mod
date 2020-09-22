@@ -1,8 +1,8 @@
-module flairs/flairs-auth
+module flairs/auth
+
+replace shared => ../shared-libraries
 
 go 1.14
-
-replace shared => /Users/kdnotes/src/flairs/shared-libraries
 
 require (
 	github.com/go-sql-driver/mysql v1.5.0

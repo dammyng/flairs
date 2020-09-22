@@ -13,6 +13,4 @@ type DBConfig struct {
 // DatabaseHandler - module app interface
 type DatabaseHandler interface{
 	AddUser(appuser.User) error
-	FindUser(*appuser.User) (appuser.User, error)
-
 }
