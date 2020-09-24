@@ -12,6 +12,7 @@ func ServerRoute(dbHandler persistence.DatabaseHandler) *mux.Router{
 	r := mux.NewRouter()
 
 	authRouter := r.PathPrefix("/auth").Subrouter()
+	authRouter.Methods("GET").Path("/users").HandlerFunc(handler.AllUsers)
 	authRouter.Methods("POST").Path("/register").HandlerFunc(handler.Register)
 
 	return r

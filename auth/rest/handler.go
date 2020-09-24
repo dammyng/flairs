@@ -46,3 +46,7 @@ func (serviceHandler ServiceHandler) Register(w http.ResponseWriter, r *http.Req
 
 	w.Write([]byte(""))
 }
+
+func (serviceHandler ServiceHandler) AllUsers(w http.ResponseWriter, r *http.Request) {
+	w.Write([]byte("All users"))
+}
