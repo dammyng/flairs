@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"strings"
 	"flairs/auth/libs/persistence"
+	"shared/helper"
 )
 
 // ServiceHandler represent routes dependencies
@@ -48,5 +49,11 @@ func (serviceHandler ServiceHandler) Register(w http.ResponseWriter, r *http.Req
 }
 
 func (serviceHandler ServiceHandler) AllUsers(w http.ResponseWriter, r *http.Request) {
-	w.Write([]byte("All users"))
+	
+	data , err := serviceHandler.DbHandler.AllUsers()
+	if err != nil {
+		msg := InvalidRequest
+		helper.DisplayAppError(w, err, msg, http.StatusUnprocessableEntity)
+	}
+	helper.WriteJsonResponse(w, data, http.StatusOK)
 }

@@ -28,3 +28,12 @@ func NewMysqlLayer(dbconfig DBConfig) *MysqlLayer {
 func (sqlLayer *MysqlLayer) AddUser(user appuser.User)error  {
 	return nil
 }
+
+func (sqlLayer *MysqlLayer) AllUsers()([]appuser.User, error)  {
+	users := []appuser.User{}
+	result := sqlLayer.Session.Find(&users)
+	if result.Error != nil {
+		return nil, result.Error
+	}
+	return users, nil
+}

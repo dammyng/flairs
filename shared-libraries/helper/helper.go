@@ -21,22 +21,18 @@ type(
 func WriteJsonResponse(w http.ResponseWriter, data interface{}, code int)  {
 	w.Header().Set("Content-Type", "application/json; charset=utf-8")
 	w.WriteHeader(code)
-	j, err := json.Marshall(data)
+	j, err := json.Marshal(data)
 	if err != nil{
 		DisplayAppError(w, err, "Json marshal error", http.StatusForbidden)
 	}
 	w.Write(j)
 }
 
-func DisplayApiError(w http.ResponseWriter, message, response_code string, data interface{}, code int) {
-	errObj := struct {
-		Message      string
-		Data         interface{}
-		ResponseCode string
-	}{
-		message,
-		data,
-		response_code,
+func DisplayAppError(w http.ResponseWriter, err error, message string, code int) {
+	errObj := ErrorObj{
+		Error:      err.Error(),
+		Message:    message,
+		HttpStatus: code,
 	}
 
 	w.Header().Set("Content-Type", "application/json; charset=utf-8")

@@ -41,7 +41,9 @@ func clearDB()  {
 
 
 func TestEmptyTable(t *testing.T)  {
-	clearTable()
+	clearDB()
+	initDB()
+
 	req, _ := http.NewRequest("GET", "/auth/users", nil)
 	response := makeRequest(req)
 	checkResponseCode(t, http.StatusOK, response.Code)
