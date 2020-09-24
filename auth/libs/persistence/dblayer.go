@@ -7,7 +7,6 @@ import (
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/jinzhu/gorm"
 	"shared/models/appuser"
-
 )
 
 type MysqlLayer struct {
@@ -16,7 +15,7 @@ type MysqlLayer struct {
 
 //NewMysqlLayer - Application database layer
 func NewMysqlLayer(dbconfig DBConfig) *MysqlLayer {
-	dsn := fmt.Sprintf("%s:%s@tcp(%s)/%s?charset=utf8&parseTime=True&loc=Local", dbconfig.Username, dbconfig.Password, dbconfig.Hosts, dbconfig.Database)
+	dsn := fmt.Sprintf("%s:%s@tcp(%s)/?charset=utf8&parseTime=True&loc=Local", dbconfig.Username, dbconfig.Password, dbconfig.Hosts)
 	s,err := gorm.Open("mysql", dsn)
 	if err !=nil{
 		log.Fatalf("[createDBSession]: %s\n", err)

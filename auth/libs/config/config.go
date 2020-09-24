@@ -7,8 +7,8 @@ var (
 	DBConfig = persistence.DBConfig{
 		Hosts:    "localhost",
 		Database: "alpha_plus",
-		Username: "",
-		Password: "",
+		Username: "root",
+		Password: "password",
 		Port:     "3306",
 	}
 	AmqpMessageBroker string
