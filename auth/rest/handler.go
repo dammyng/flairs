@@ -5,19 +5,18 @@ import (
 	"fmt"
 	"net/http"
 	"strings"
-	"auth/libs/persistence"
 	"shared/helper"
+	"auth/grpc/authclient"
+
 )
 
 // ServiceHandler represent routes dependencies
 type ServiceHandler struct {
-	DbHandler persistence.DatabaseHandler
 }
 
 // NewServiceHandler : Service handler constructor
-func NewServiceHandler(dbHandler persistence.DatabaseHandler) ServiceHandler {
+func NewServiceHandler() ServiceHandler {
 	return ServiceHandler{
-		DbHandler: dbHandler,
 	}
 }
 
@@ -50,10 +49,12 @@ func (serviceHandler ServiceHandler) Register(w http.ResponseWriter, r *http.Req
 
 func (serviceHandler ServiceHandler) AllUsers(w http.ResponseWriter, r *http.Request) {
 	
-	data , err := serviceHandler.DbHandler.AllUsers()
+	responce, err := authclient.Connect()
+	
 	if err != nil {
 		msg := InvalidRequest
 		helper.DisplayAppError(w, err, msg, http.StatusUnprocessableEntity)
 	}
-	helper.WriteJsonResponse(w, data, http.StatusOK)
+	helper.WriteJsonResponse(w, responce, http.StatusOK)
 }
+

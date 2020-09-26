@@ -6,6 +6,9 @@ import (
 	"net"
 	"shared/models/appuser"
 	"google.golang.org/grpc"
+	"auth/libs/persistence"
+	"auth/libs/config"
+
 )
 
 // Start GRPC Server
@@ -16,7 +19,11 @@ func Start()  {
 		log.Fatalf("failed to listen :%v", err)
 	}
 
-	auth := AuthServer{}
+	dbHandler := persistence.NewMysqlLayer(config.DBConfig)
+	dbHandler.Session.Exec(config.CreateDatabase)
+	dbHandler.Session.Exec(config.UseAlphaPlus)
+
+	auth := NewAuthServer(dbHandler)
 
 	grpcServer := grpc.NewServer()
 	defer grpcServer.Stop()

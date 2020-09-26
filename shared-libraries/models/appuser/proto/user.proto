@@ -9,7 +9,7 @@ message User {
     string ID =1;
     string firstName =2;
     string lastName = 3;
-    google.protobuf.Timestamp DOB = 4;
+    string DOB = 4;
     string gender = 5;
     string BVN = 6;
     string address = 7;
@@ -27,11 +27,11 @@ message User {
     string how_did_u_hear_about_us = 16;
     string userName = 17;
     string email=18;
-    google.protobuf.Timestamp emailVerifiedAt = 19;
+    string emailVerifiedAt = 19;
     bytes password = 20;
     bytes pin = 21;
     string phoneNumber = 22;
-    google.protobuf.Timestamp phoneVerifiedAt = 23;
+    string phoneVerifiedAt = 23;
     enum accountType {
         PERSONAL = 0;
         BUSINESS = 1;
@@ -41,8 +41,16 @@ message User {
     bool isProfileCompleted = 26;
     repeated string cards =27;
     repeated string wallets = 28;
-    google.protobuf.Timestamp createdAt = 29;
-    google.protobuf.Timestamp updatedAt = 30;
+    string createdAt = 29;
+    string updatedAt = 30;
+}
+
+message Empty {
+
+}
+
+message Users {
+    repeated User results = 1;
 }
 
 message UserIDArg{
@@ -57,6 +65,7 @@ message UserArg{
 }
 
 service UserService{
+    rpc AllUsers (Empty) returns (Users){}
     rpc FindUser (UserArg) returns (User){}
     rpc Welcome (UserArg) returns (User){}
     rpc UpdateUser (UserArg) returns (User){}

@@ -7,7 +7,7 @@ import (
 	"golang.org/x/net/context"
 )
 
-func Connect()  {
+func Connect() (interface{}, error) {
 	var conn  *grpc.ClientConn
 	conn, err := grpc.Dial(":9011", grpc.WithInsecure())
 	if err != nil {
@@ -17,10 +17,10 @@ func Connect()  {
 
 	authClient := appuser.NewUserServiceClient(conn)
 
-	response, err :=authClient.FindUser(context.Background(), &appuser.UserArg{})
-	if err != nil {
-		log.Fatalf("Error when calling SayHello: %s", err)
-	}
-	log.Printf("Response from server: %s", response)
+	return authClient.AllUsers(context.Background(), &appuser.Empty{})
+	//if err != nil {
+	//	log.Fatalf("Error when calling SayHello: %s", err)
+	//}
+	//log.Printf("Response from server:   %v", response.Results)
 
 }

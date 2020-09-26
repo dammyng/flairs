@@ -2,13 +2,12 @@ package rest
 
 import (
 	"github.com/gorilla/mux"
-	"auth/libs/persistence"
 
 )
 
 //ServerRoute handles HTTP traffic
-func ServerRoute(dbHandler persistence.DatabaseHandler) *mux.Router{
-	handler := NewServiceHandler(dbHandler)
+func ServerRoute() *mux.Router{
+	handler := NewServiceHandler()
 	r := mux.NewRouter()
 
 	authRouter := r.PathPrefix("/auth").Subrouter()
