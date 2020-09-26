@@ -1,9 +1,9 @@
 package main_test
 
 import (
-	"flairs/auth/libs/config"
-	"flairs/auth/libs/persistence"
-	"flairs/auth/rest"
+	"auth/libs/config"
+	"auth/libs/persistence"
+	"auth/rest"
 	"net/http"
 	"net/http/httptest"
 	"os"

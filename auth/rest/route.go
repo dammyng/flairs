@@ -2,7 +2,7 @@ package rest
 
 import (
 	"github.com/gorilla/mux"
-	"flairs/auth/libs/persistence"
+	"auth/libs/persistence"
 
 )
 

@@ -1,7 +1,7 @@
 package config
 
 import (
-	"flairs/auth/libs/persistence"
+	"auth/libs/persistence"
 )
 var (
 	DBConfig = persistence.DBConfig{

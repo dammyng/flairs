@@ -1,4 +1,4 @@
-module flairs/shared-libraries
+module shared
 
 go 1.14
 

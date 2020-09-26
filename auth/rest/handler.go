@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"net/http"
 	"strings"
-	"flairs/auth/libs/persistence"
+	"auth/libs/persistence"
 	"shared/helper"
 )
 
