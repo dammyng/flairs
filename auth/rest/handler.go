@@ -2,21 +2,28 @@ package rest
 
 import (
 	"encoding/json"
+	"encoding/hex"
 	"fmt"
 	"net/http"
 	"strings"
 	"shared/helper"
+	"shared/events"
 	"auth/grpc/authclient"
+	uuid "github.com/satori/go.uuid"
+
+	amqp "shared/events/amqp"
 
 )
 
 // ServiceHandler represent routes dependencies
 type ServiceHandler struct {
+	EventEmitter amqp.EventEmitter
 }
 
 // NewServiceHandler : Service handler constructor
-func NewServiceHandler() ServiceHandler {
+func NewServiceHandler(eventEmitter amqp.EventEmitter) ServiceHandler {
 	return ServiceHandler{
+		EventEmitter: eventEmitter,
 	}
 }
 
@@ -56,5 +63,15 @@ func (serviceHandler ServiceHandler) AllUsers(w http.ResponseWriter, r *http.Req
 		helper.DisplayAppError(w, err, msg, http.StatusUnprocessableEntity)
 	}
 	helper.WriteJsonResponse(w, responce, http.StatusOK)
+	ID := uuid.NewV4()
+
+	msg:= events. UserCreatedEvent{
+		ID: hex.EncodeToString(ID.Bytes()),
+		Host: "http://localhost:15672/",
+		Email: "user.Email",
+		Token: "Token",
+	}
+
+	serviceHandler.EventEmitter.Emit(&msg, "auth")
 }
 

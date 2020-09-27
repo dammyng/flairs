@@ -2,12 +2,13 @@ package rest
 
 import (
 	"github.com/gorilla/mux"
+	amqp "shared/events/amqp"
 
 )
 
 //ServerRoute handles HTTP traffic
-func ServerRoute() *mux.Router{
-	handler := NewServiceHandler()
+func ServerRoute(eventEmitter amqp.EventEmitter) *mux.Router{
+	handler := NewServiceHandler(eventEmitter)
 	r := mux.NewRouter()
 
 	authRouter := r.PathPrefix("/auth").Subrouter()
