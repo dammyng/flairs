@@ -3,12 +3,14 @@ package rest
 import (
 	"github.com/gorilla/mux"
 	amqp "shared/events/amqp"
+	"github.com/gomodule/redigo/redis"
+
 
 )
 
 //ServerRoute handles HTTP traffic
-func ServerRoute(eventEmitter amqp.EventEmitter) *mux.Router{
-	handler := NewServiceHandler(eventEmitter)
+func ServerRoute(eventEmitter amqp.EventEmitter, redisConn redis.Conn ) *mux.Router{
+	handler := NewServiceHandler(eventEmitter, redisConn)
 	r := mux.NewRouter()
 
 	authRouter := r.PathPrefix("/auth").Subrouter()

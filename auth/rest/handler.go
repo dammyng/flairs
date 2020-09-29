@@ -12,18 +12,22 @@ import (
 	uuid "github.com/satori/go.uuid"
 
 	amqp "shared/events/amqp"
+	"github.com/gomodule/redigo/redis"
 
 )
 
 // ServiceHandler represent routes dependencies
 type ServiceHandler struct {
 	EventEmitter amqp.EventEmitter
+	RedisConn redis.Conn
+
 }
 
 // NewServiceHandler : Service handler constructor
-func NewServiceHandler(eventEmitter amqp.EventEmitter) ServiceHandler {
+func NewServiceHandler(eventEmitter amqp.EventEmitter,redisConn redis.Conn) ServiceHandler {
 	return ServiceHandler{
 		EventEmitter: eventEmitter,
+		RedisConn : redisConn,
 	}
 }
 

@@ -6,6 +6,7 @@ go 1.14
 
 require (
 	github.com/go-sql-driver/mysql v1.5.0
+	github.com/gomodule/redigo v1.8.2
 	github.com/gorilla/mux v1.8.0
 	github.com/jinzhu/gorm v1.9.16
 	github.com/niemeyer/pretty v0.0.0-20200227124842-a10e7caefd8e // indirect

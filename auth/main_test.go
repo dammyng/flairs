@@ -16,6 +16,7 @@ var serviceHandler rest.ServiceHandler
 var dbHandler *persistence.MysqlLayer
 
 func TestMain(m *testing.M)  {
+	// Start GRPC 
 	initDB()
 	//initUserTable()
 	//setUpRouter()
