@@ -20,6 +20,7 @@ func NewAuthServer(dbHandler persistence.DatabaseHandler) AuthServer {
 
 // Find User
 func (a *AuthServer) AllUsers(ctx context.Context, in *appuser.Empty) (*appuser.Users, error) {
+	log.Println("Auth")
 	var u = []*appuser.User{}
 	data, err := a.DbHandler.AllUsers()
 	if err != nil {

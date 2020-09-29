@@ -1,4 +1,4 @@
-package config
+package setup
 
 var (
 	CreateDatabase   = `CREATE DATABASE IF NOT EXISTS alpha_plus DEFAULT CHARACTER SET latin1 COLLATE latin1_swedish_ci;`

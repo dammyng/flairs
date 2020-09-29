@@ -8,8 +8,8 @@ import (
 
 )
 
-//ServerRoute handles HTTP traffic
-func ServerRoute(eventEmitter amqp.EventEmitter, redisConn redis.Conn ) *mux.Router{
+//ServerRouter handles HTTP traffic
+func ServerRouter(eventEmitter amqp.EventEmitter, redisConn redis.Conn ) *mux.Router{
 	handler := NewServiceHandler(eventEmitter, redisConn)
 	r := mux.NewRouter()
 
