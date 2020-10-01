@@ -1,8 +1,7 @@
 syntax = "proto3";
 package appuser;
 
-import "google/protobuf/timestamp.proto";
-option go_package="shared-libraries/models/appuser";
+option go_package="shared/models/appuser";
 
 
 message User {
@@ -46,7 +45,6 @@ message User {
 }
 
 message Empty {
-
 }
 
 message Users {
@@ -66,7 +64,9 @@ message UserArg{
 
 service UserService{
     rpc AllUsers (Empty) returns (Users){}
-    rpc FindUser (UserArg) returns (User){}
-    rpc Welcome (UserArg) returns (User){}
+    rpc FindUsers (UserArg) returns (Users){}
+    rpc GetUser (UserArg) returns (User){}
+    rpc AddUser (UserArg) returns (User){}
     rpc UpdateUser (UserArg) returns (User){}
+    rpc DeleteUser (UserArg) returns (Empty){}
 }

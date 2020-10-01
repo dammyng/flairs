@@ -18,38 +18,51 @@ func NewAuthServer(dbHandler persistence.DatabaseHandler) AuthServer {
 	}
 }
 
-// Find User
+// AllUsers - get the list of all registered user
 func (a *AuthServer) AllUsers(ctx context.Context, in *appuser.Empty) (*appuser.Users, error) {
-	log.Println("Auth")
 	var u = []*appuser.User{}
-	data, err := a.DbHandler.AllUsers()
-	if err != nil {
-		log.Print("Error querying Db")
-	}
-	for _, t := range data {
-		u = append(u, &t)
-	}
-
-	log.Print("Receive message body from client")
+	//data, err := a.DbHandler.AllUsers()
+	//if err != nil {
+	//	log.Print("Error querying Db")
+	//}
+	//for _, t := range data {
+	//	u = append(u, &t)
+	//}
+	//
+	//log.Print("Receive message body from client")
 	return &appuser.Users{
 		Results: u,
 	}, nil
 }
 
-// Find User
+// GetUser - get a single user
+func (a *AuthServer) GetUser(ctx context.Context, in *appuser.UserArg) (*appuser.User, error) {
+	log.Print("Receive message body from client")
+	return &appuser.User{}, nil
+}
+
+// FindUsers filter users by an obj
+func (a *AuthServer) FindUsers(ctx context.Context, in *appuser.UserArg) (*appuser.Users, error) {
+	log.Print("Receive message body from client")
+	return &appuser.Users{
+		Results: []*appuser.User{},
+	}, nil
+}
+
+// AddUser add a new user
+func (a *AuthServer) AddUser(ctx context.Context, in *appuser.UserArg) (*appuser.User, error) {
+	log.Print("Receive message body from client")
+	return &appuser.User{}, nil
+}
+
+// UpdateUser update a user record
 func (a *AuthServer) UpdateUser(ctx context.Context, in *appuser.UserArg) (*appuser.User, error) {
 	log.Print("Receive message body from client")
 	return &appuser.User{}, nil
 }
 
-// Find User
-func (a *AuthServer) FindUser(ctx context.Context, in *appuser.UserArg) (*appuser.User, error) {
+// DeleteUser assuming it is possible
+func (a *AuthServer) DeleteUser(ctx context.Context, in *appuser.UserArg) (*appuser.Empty, error) {
 	log.Print("Receive message body from client")
-	return &appuser.User{}, nil
-}
-
-// Find User
-func (a *AuthServer) Welcome(ctx context.Context, in *appuser.UserArg) (*appuser.User, error) {
-	log.Print("Receive message body from client")
-	return &appuser.User{}, nil
+	return &appuser.Empty{}, nil
 }
