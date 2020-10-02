@@ -4,7 +4,7 @@ import (
 	"auth/libs/persistence"
 	"auth/libs/setup"
 	"context"
-	"errors"
+	"log"
 	"os"
 	"shared/models/appuser"
 	"testing"
@@ -17,37 +17,89 @@ func TestMain(m *testing.M) {
 	a.StartGRPC()
 	a.InitHandler()
 	code := m.Run()
-	clearDB()
+	//clearDB()
 	os.Exit(code)
 }
 
-func TestAddNewUserGRPC(t *testing.T) {
+//Fetch user that do not exist
+//
+func TestCreateNewUser(t *testing.T) {
+	clearUsersTable()
+	cxt := context.Background()
+	got, err := a.authServer.AddUser(cxt, &correctAppUser)
+	if err != nil {
+		t.Errorf("Test failed with an error '%v'", err.Error())
+	}
+	if got.ID != correctUser.ID {
+		t.Errorf("Expected user details to be '%v'. Got '%v'", correctUser.ID, got.ID)
+	}
+	if got.Email != correctUser.Email {
+		t.Errorf("Expected user details to be '%v'. Got '%v'", correctUser.Email, got.Email)
+	}
+	if got.DOB != correctUser.DOB {
+		t.Errorf("Expected user details to be '%v'. Got '%v'", correctUser.DOB, got.DOB)
+	}
+}
 
-	correctUser = appuser.User{}
+func TestGetAUser(t *testing.T) {
+	clearUsersTable()
+	addDefaultUser()
 
-	tests := map[string]struct {
-		input appuser.UserArg
-		want  appuser.User
-		err   error
-	}{
-		"correct":                {input: appuser.UserArg{UserPayload: &correctUser}, want: correctUser},
-		"invalid_user":           {input: appuser.UserArg{UserPayload: &userWithoutEmail}, err: errors.New("")},
-		"email_should_be_unique": {input: appuser.UserArg{UserPayload: &notUniqueEmail}, err: errors.New("")},
+	defaltUser := appuser.User{
+		Email: "someone@flairs.com",
+		ID:    "a65a388b-9c94-46f8-a99a-90c4807ce83b",
+	}
+	defaultAppUser := appuser.UserArg{UserPayload: &defaltUser}
+
+	cxt := context.Background()
+	got, err := a.authServer.GetUser(cxt, &defaultAppUser)
+
+	if err != nil {
+		t.Errorf("Test failed with an error '%v'", err.Error())
+	}
+	if got.ID != defaltUser.ID {
+		t.Errorf("Expected user details to be '%v'. Got '%v'", defaultAppUser.UserPayload.ID, got.ID)
+	}
+	if got.Email != defaltUser.Email {
+		t.Errorf("Expected user details to be '%v'. Got '%v'", defaultAppUser.UserPayload.Email, got.Email)
+	}
+}
+
+func TestUpdateAUser(t *testing.T) {
+	clearUsersTable()
+	addDefaultUser()
+	originalUser := getDefaultUser()
+	orginalEmail := originalUser.Email
+	updateDefaltUser := appuser.User{
+		Email: "some@flairs.com",
+		ID:    "a65a388b-9c94-46f8-a99a-90c4807ce83b",
+	}
+	updater := appuser.UpdateArg{
+		OldUser: &originalUser,
+		NewObj:  &updateDefaltUser,
+	}
+	err := a.DbHandler.UpdateUser(&updater)
+
+	if err != nil {
+		t.Errorf("Test failed with an error '%v'", err.Error())
 	}
 
-	for name, tc := range tests {
-		cxt := context.Background()
-		t.Run(name, func(t *testing.T) {
-			got, err := a.authServer.AddUser(cxt, &appuser.UserArg{UserPayload: &appuser.User{}})
-			if err != nil && err != tc.err {
-				t.Fatalf("Test could not create a user | expected: %v, got: %v", tc.err, err)
-			}
-			if got != nil {
-				t.Fatalf("Test failed after creating a user | expected: %v, got: %v", tc.want, got)
-			}
+	updatedUser := getDefaultUser()
 
-		})
+	if updatedUser.Email != orginalEmail {
+		t.Errorf("New Email is expected to be different. expected '%v'. Got '%v'", updateDefaltUser.Email, orginalEmail)
 	}
+}
+
+func addDefaultUser() {
+	dbHandler := persistence.NewMysqlLayer(os.Getenv("DBConnString"))
+	dbHandler.Session.Exec(setup.InsertDemoUser)
+}
+func getDefaultUser() appuser.User {
+	var users []appuser.User
+	dbHandler := persistence.NewMysqlLayer(os.Getenv("DBConnString"))
+	dbHandler.Session.Raw(setup.SelectDefaultUser).Scan(&users)
+	return users[0]
 }
 
 func TestAddNewUserHTTP(t *testing.T) {
@@ -61,4 +113,9 @@ func TestAddNewUserHTTP(t *testing.T) {
 func clearDB() {
 	dbHandler := persistence.NewMysqlLayer(os.Getenv("DBConfig"))
 	dbHandler.Session.Exec(setup.DropDB)
+}
+
+func clearUsersTable() {
+	dbHandler := persistence.NewMysqlLayer(os.Getenv("DBConnString"))
+	dbHandler.Session.Exec(setup.ClearUserTable)
 }

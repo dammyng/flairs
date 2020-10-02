@@ -1,13 +1,15 @@
 package main
 
-import "shared/models/appuser"
+import (
+	"shared/models/appuser"
+)
 
-var(
-	correctUser   =  appuser.User{
-		ID:                 "5690345-7890-4686-ad22-dbe00522dd3e",
+var (
+	correctUser = appuser.User{
+		ID:                 "2490340-7870-4686-ad22-dbe00522dd3e",
 		FirstName:          "Foo",
 		LastName:           "Bar",
-		DOB:                "2020-01-01 01:02:02",
+		DOB:                "2011-10-05T14:48:00.000Z",
 		Gender:             "male",
 		BVN:                "9876543210",
 		Address:            "Christ Embassy LCA, 8 Billings Way, Oregun, Ikeja",
@@ -23,23 +25,26 @@ var(
 		Referrer:           "",
 		RefCode:            "oXvI03KD2ETPr6B",
 		HowDidUHearAboutUs: "",
-		UserName:           "foobar",
-		Email:              "foo@bar.com",
-		EmailVerifiedAt:    "2020-01-01 01:02:02",
+		UserName:           "foobarz",
+		Email:              "foo@bard.com",
+		EmailVerifiedAt:    "2011-10-05T14:48:00.000Z",
 		Password:           []byte{},
 		Pin:                []byte{},
-		PhoneNumber:        "080790869908",
-		PhoneVerifiedAt:    "2020-01-01 01:02:02",
+		PhoneVerifiedAt:    "2011-10-05T14:48:00.000Z",
 		ACCOUNT_TYPE:       0,
-		LastCardRequested:  "2020-01-01 01:02:02",
+		LastCardRequested:  "2011-10-05T14:48:00.000Z",
 		IsProfileCompleted: false,
-		Cards:              []string{},
-		Wallets:            []string{},
-		CreatedAt:          "2020-01-01 01:02:02",
-		UpdatedAt:          "2020-01-01 01:02:02",
+		Cards:              "",
+		Wallets:            "",
+		CreatedAt:          "2011-10-05T14:48:00.000Z",
+		UpdatedAt:          "2011-10-05T14:48:00.000Z",
 	}
-	userWithoutEmail   =  appuser.User{
-		ID:                 "5690345-7890-1111-ad22-dbe00522dd3e",
+	correctAppUser = appuser.UserArg{
+		UserPayload: &correctUser,
+	}
+
+	userWithoutEmail = appuser.User{
+		ID:                 "5690300-7890-1111-ad22-dbe00522dd3e",
 		FirstName:          "Foo",
 		LastName:           "Bar",
 		DOB:                "2020-01-01 01:02:02",
@@ -67,13 +72,13 @@ var(
 		ACCOUNT_TYPE:       0,
 		LastCardRequested:  "2020-01-01 01:02:02",
 		IsProfileCompleted: false,
-		Cards:              []string{},
-		Wallets:            []string{},
+		Cards:              "",
+		Wallets:            "",
 		CreatedAt:          "2020-01-01 01:02:02",
 		UpdatedAt:          "2020-01-01 01:02:02",
 	}
 
-	notUniqueEmail   =  appuser.User{
+	notUniqueEmail = appuser.User{
 		ID:                 "5690345-7890-4686-ad22-dbe00522111",
 		FirstName:          "Foo",
 		LastName:           "Bar",
@@ -103,8 +108,8 @@ var(
 		ACCOUNT_TYPE:       0,
 		LastCardRequested:  "2020-01-01 01:02:02",
 		IsProfileCompleted: false,
-		Cards:              []string{},
-		Wallets:            []string{},
+		Cards:              "",
+		Wallets:            "",
 		CreatedAt:          "2020-01-01 01:02:02",
 		UpdatedAt:          "2020-01-01 01:02:02",
 	}

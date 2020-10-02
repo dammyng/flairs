@@ -36,14 +36,17 @@ func LoadEnv() {
 func (a *App) InitDB() {
 	LoadEnv()
 	dbHandler := persistence.NewMysqlLayer(os.Getenv("DBConfig"))
+	dbHandler.Session.Exec(setup.SetTimeZone)
 	dbHandler.Session.Exec(setup.CreateDatabase)
 	dbHandler.Session.Exec(setup.UseAlphaPlus)
+	dbHandler.Session.Exec(setup.CreateUserTable)
 	a.DbHandler = dbHandler
 }
 
 // StartGRPC would start grpc server on TCP port addr
 func (a *App) StartGRPC() {
 	authS := authserver.NewAuthServer(a.DbHandler)
+
 	go authserver.Start(authS, os.Getenv("GRPCPort"))
 	a.authServer = authS
 }

@@ -37,8 +37,11 @@ func (a *AuthServer) AllUsers(ctx context.Context, in *appuser.Empty) (*appuser.
 
 // GetUser - get a single user
 func (a *AuthServer) GetUser(ctx context.Context, in *appuser.UserArg) (*appuser.User, error) {
-	log.Print("Receive message body from client")
-	return &appuser.User{}, nil
+	result, err := a.DbHandler.GetUser(in.UserPayload)
+	if err != nil {
+		return nil, err
+	}
+	return &result, nil
 }
 
 // FindUsers filter users by an obj
@@ -51,14 +54,18 @@ func (a *AuthServer) FindUsers(ctx context.Context, in *appuser.UserArg) (*appus
 
 // AddUser add a new user
 func (a *AuthServer) AddUser(ctx context.Context, in *appuser.UserArg) (*appuser.User, error) {
-	log.Print("Receive message body from client")
-	return &appuser.User{}, nil
+	log.Println("Receive add user message from client")
+	err := a.DbHandler.AddUser(*in.UserPayload)
+	if err != nil {
+		return nil, err
+	}
+	return in.UserPayload, nil
 }
 
 // UpdateUser update a user record
-func (a *AuthServer) UpdateUser(ctx context.Context, in *appuser.UserArg) (*appuser.User, error) {
+func (a *AuthServer) UpdateUser(ctx context.Context, in *appuser.UpdateArg) (*appuser.Empty, error) {
 	log.Print("Receive message body from client")
-	return &appuser.User{}, nil
+	return nil, a.DbHandler.UpdateUser(in)
 }
 
 // DeleteUser assuming it is possible

@@ -38,8 +38,8 @@ message User {
     accountType ACCOUNT_TYPE = 24;
     string lastCardRequested = 25;
     bool isProfileCompleted = 26;
-    repeated string cards =27;
-    repeated string wallets = 28;
+    string cards =27;
+    string wallets = 28;
     string createdAt = 29;
     string updatedAt = 30;
 }
@@ -51,11 +51,9 @@ message Users {
     repeated User results = 1;
 }
 
-message UserIDArg{
-    string ID = 1;
-    string email = 2;
-    string userName = 3;
-    string BVN = 4;
+message UpdateArg {
+    User oldUser = 1;
+    User newObj = 2;
 }
 
 message UserArg{
@@ -67,6 +65,6 @@ service UserService{
     rpc FindUsers (UserArg) returns (Users){}
     rpc GetUser (UserArg) returns (User){}
     rpc AddUser (UserArg) returns (User){}
-    rpc UpdateUser (UserArg) returns (User){}
+    rpc UpdateUser (UpdateArg) returns (Empty){}
     rpc DeleteUser (UserArg) returns (Empty){}
 }
