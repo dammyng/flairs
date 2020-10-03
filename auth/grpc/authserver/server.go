@@ -15,7 +15,7 @@ func Start(auth AuthServer, port string) {
 		log.Fatalf("failed to listen :%v", err)
 	}
 	
-	//auth.DbHandler.DoMigrations()
+	auth.DbHandler.DoMigrations()
 	grpcServer := grpc.NewServer()
 	appuser.RegisterUserServiceServer(grpcServer, &auth)
 	defer grpcServer.Stop()

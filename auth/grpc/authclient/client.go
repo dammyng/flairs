@@ -1,14 +1,14 @@
 package authclient
 
 import (
+	"golang.org/x/net/context"
+	"google.golang.org/grpc"
 	"log"
 	"shared/models/appuser"
-	"google.golang.org/grpc"
-	"golang.org/x/net/context"
 )
 
 func Connect() (interface{}, error) {
-	var conn  *grpc.ClientConn
+	var conn *grpc.ClientConn
 	conn, err := grpc.Dial(":9011", grpc.WithInsecure())
 	if err != nil {
 		log.Fatalf("did not connect: %s", err)
@@ -23,4 +23,59 @@ func Connect() (interface{}, error) {
 	//}
 	//log.Printf("Response from server:   %v", response.Results)
 
+}
+
+// AddNewUser grpc client to add new user
+func AddNewUser(in *appuser.UserArg) (*appuser.User, error) {
+	var conn *grpc.ClientConn
+	conn, err := grpc.Dial(":9011", grpc.WithInsecure())
+	if err != nil {
+		log.Fatalf("did not connect: %s", err)
+	}
+	defer conn.Close()
+
+	authClient := appuser.NewUserServiceClient(conn)
+
+	result, err := authClient.AddUser(context.Background(), in)
+
+	if err != nil {
+		return nil, err
+	}
+	return result, nil
+}
+
+func GetAUser(in *appuser.UserArg) (*appuser.User, error) {
+	var conn *grpc.ClientConn
+	conn, err := grpc.Dial(":9011", grpc.WithInsecure())
+	if err != nil {
+		log.Fatalf("did not connect: %s", err)
+	}
+	defer conn.Close()
+
+	authClient := appuser.NewUserServiceClient(conn)
+
+	result, err := authClient.GetUser(context.Background(), in)
+
+	if err != nil {
+		return nil, err
+	}
+	return result, nil
+}
+
+func UpdateUser(in *appuser.UpdateArg) (*appuser.Empty, error) {
+	var conn *grpc.ClientConn
+	conn, err := grpc.Dial(":9011", grpc.WithInsecure())
+	if err != nil {
+		log.Fatalf("did not connect: %s", err)
+	}
+	defer conn.Close()
+
+	authClient := appuser.NewUserServiceClient(conn)
+
+	_, err = authClient.UpdateUser(context.Background(), in)
+
+	if err != nil {
+		return new(appuser.Empty), err
+	}
+	return new(appuser.Empty), nil
 }

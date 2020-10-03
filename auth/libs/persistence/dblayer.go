@@ -1,8 +1,10 @@
 package persistence
 
 import (
+	"auth/libs/setup"
 	"auth/libs/utils"
 	"log"
+	"os"
 
 	"shared/models/appuser"
 
@@ -38,30 +40,37 @@ func (sqlLayer *MysqlLayer) AllUsers() ([]appuser.User, error) {
 	}
 	return users, nil
 }
+// FindUsers - return a list of users 
 func (sqlLayer *MysqlLayer) FindUsers() ([]appuser.User, error) {
 	users := []appuser.User{}
 	return users, nil
 }
-
+// UpdateUser - update a user but not in the DB
 func (sqlLayer *MysqlLayer) UpdateUser(data *appuser.UpdateArg) error {
-	return sqlLayer.Session.Model(&data.OldUser).Updates(data.NewObj).Error
+	session := sqlLayer.GetFreshSession()
+	return session.Model(&data.OldUser).Updates(&data.NewObj).Error
 }
 
+// GetUser - return a sure from the database
 func (sqlLayer *MysqlLayer) GetUser(in *appuser.User) (appuser.User, error) {
+	session := sqlLayer.GetFreshSession()
 	var user appuser.User
-	if sqlLayer.Session.Where(in).First(&user).RecordNotFound() {
+	if session.Where(in).First(&user).RecordNotFound() {
 		return user, gorm.ErrRecordNotFound
 	}
 	return user, nil
 }
 
 func (db *MysqlLayer) GetFreshSession() *gorm.DB {
-	return db.Session.New()
+	session := db.Session.New()
+	session.Exec(setup.SetTimeZone)
+	session.Exec(setup.UseAlphaPlus)
+	return session
 }
 
 func (db *MysqlLayer) DoMigrations() {
-	//session := db.GetFreshSession()
-	db.Session.Set("gorm:table_options", "ENGINE=InnoDB").AutoMigrate(&appuser.User{})
+	s := NewMysqlLayer(os.Getenv("DBConnString"))
+	s.Session.Set("gorm:table_options", "ENGINE=InnoDB").AutoMigrate(appuser.User{})
 }
 
 func (db *MysqlLayer) Close() {

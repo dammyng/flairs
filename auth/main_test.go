@@ -1,10 +1,10 @@
 package main
 
 import (
+	"auth/grpc/authclient"
 	"auth/libs/persistence"
 	"auth/libs/setup"
 	"context"
-	"log"
 	"os"
 	"shared/models/appuser"
 	"testing"
@@ -17,7 +17,7 @@ func TestMain(m *testing.M) {
 	a.StartGRPC()
 	a.InitHandler()
 	code := m.Run()
-	//clearDB()
+	clearDB()
 	os.Exit(code)
 }
 
@@ -68,26 +68,81 @@ func TestGetAUser(t *testing.T) {
 func TestUpdateAUser(t *testing.T) {
 	clearUsersTable()
 	addDefaultUser()
-	originalUser := getDefaultUser()
-	orginalEmail := originalUser.Email
+	defaultUser := getDefaultUser()
+	oldEmail := defaultUser.Email
+
 	updateDefaltUser := appuser.User{
 		Email: "some@flairs.com",
 		ID:    "a65a388b-9c94-46f8-a99a-90c4807ce83b",
 	}
+
 	updater := appuser.UpdateArg{
-		OldUser: &originalUser,
+		OldUser: &defaultUser,
 		NewObj:  &updateDefaltUser,
 	}
+
 	err := a.DbHandler.UpdateUser(&updater)
 
 	if err != nil {
 		t.Errorf("Test failed with an error '%v'", err.Error())
 	}
 
-	updatedUser := getDefaultUser()
+	if defaultUser.Email == oldEmail {
+		t.Errorf("New Email is expected to be different. expected '%v' as new email. but it still equals '%v'", defaultUser.Email, oldEmail)
+	}
+}
 
-	if updatedUser.Email != orginalEmail {
-		t.Errorf("New Email is expected to be different. expected '%v'. Got '%v'", updateDefaltUser.Email, orginalEmail)
+func TestAdduserGRPClient(t *testing.T) {
+	clearUsersTable()
+	result, err := authclient.AddNewUser(&correctAppUser)
+	if err != nil {
+		t.Errorf("Test failed with an error '%v'", err.Error())
+	}
+	if result.ID != correctUser.ID {
+		t.Errorf("Test failed expected ID %v got '%v'", correctUser.ID, result.ID)
+	}
+}
+
+func TestGetuserGRPClient(t *testing.T) {
+	clearUsersTable()
+	addDefaultUser()
+	defaltUser := appuser.User{
+		Email: "someone@flairs.com",
+		ID:    "a65a388b-9c94-46f8-a99a-90c4807ce83b",
+	}
+	defaultAppUser := appuser.UserArg{UserPayload: &defaltUser}
+
+	result, err := authclient.GetAUser(&defaultAppUser)
+	if err != nil {
+		t.Errorf("Test failed with an error '%v'", err.Error())
+	}
+	if result.ID != defaltUser.ID {
+		t.Errorf("Test failed expected ID %v got '%v'", defaltUser.ID, result.ID)
+	}
+}
+
+func TestUpdateuserGRPClient(t *testing.T) {
+	clearUsersTable()
+	addDefaultUser()
+	defaltUser := appuser.User{
+		Email: "somes@flairs.com",
+		ID:    "a65a388b-9c94-46f8-a99a-90c4807ce83b",
+	}
+	olduser := getDefaultUser()
+
+	updater := appuser.UpdateArg{
+		OldUser: &olduser,
+		NewObj:  &defaltUser,
+	}
+
+	_, err := authclient.UpdateUser(&updater)
+	if err != nil {
+		t.Errorf("Test failed with an error '%v'", err.Error())
+	}
+	newuser := getDefaultUser()
+
+	if olduser.Email == newuser.Email {
+		t.Errorf("Email is expected to be different  but got the same %v | %v after update", newuser.Email, olduser.Email)
 	}
 }
 

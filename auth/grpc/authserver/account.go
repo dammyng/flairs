@@ -65,7 +65,7 @@ func (a *AuthServer) AddUser(ctx context.Context, in *appuser.UserArg) (*appuser
 // UpdateUser update a user record
 func (a *AuthServer) UpdateUser(ctx context.Context, in *appuser.UpdateArg) (*appuser.Empty, error) {
 	log.Print("Receive message body from client")
-	return nil, a.DbHandler.UpdateUser(in)
+	return new(appuser.Empty), a.DbHandler.UpdateUser(in)
 }
 
 // DeleteUser assuming it is possible
