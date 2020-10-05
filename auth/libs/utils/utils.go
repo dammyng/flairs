@@ -48,10 +48,12 @@ func GRPCModelToSQL(in *appuser.User) *sqlmodel.User {
 }
 
 func usRFC3339Time(in string) time.Time {
+	if len(in) < 2 {
+		in = "2006-01-02T15:04:05Z"
+	}
 	t, err := time.Parse(time.RFC3339, in)
 	if err != nil {
 		log.Panic("invalid date string", err)
-
 	}
 	return t
 }

@@ -14,8 +14,10 @@ func ServerRouter(eventEmitter amqp.EventEmitter, redisConn redis.Conn ) *mux.Ro
 	r := mux.NewRouter()
 
 	authRouter := r.PathPrefix("/auth").Subrouter()
-	authRouter.Methods("GET").Path("/users").HandlerFunc(handler.AllUsers)
+	authRouter.Methods("GET").Path("/user").HandlerFunc(handler.Find)
 	authRouter.Methods("POST").Path("/register").HandlerFunc(handler.Register)
+	//authRouter.Methods("PUT").Path("/users").HandlerFunc(handler.Update)
+	//authRouter.Methods("PUT").Path("/login").HandlerFunc(handler.Login)
 
 	return r
 }

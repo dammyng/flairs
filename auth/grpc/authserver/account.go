@@ -41,7 +41,7 @@ func (a *AuthServer) GetUser(ctx context.Context, in *appuser.UserArg) (*appuser
 	if err != nil {
 		return nil, err
 	}
-	return &result, nil
+	return result, nil
 }
 
 // FindUsers filter users by an obj

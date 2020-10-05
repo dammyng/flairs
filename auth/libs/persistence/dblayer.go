@@ -52,13 +52,14 @@ func (sqlLayer *MysqlLayer) UpdateUser(data *appuser.UpdateArg) error {
 }
 
 // GetUser - return a sure from the database
-func (sqlLayer *MysqlLayer) GetUser(in *appuser.User) (appuser.User, error) {
+func (sqlLayer *MysqlLayer) GetUser(in *appuser.User) (*appuser.User, error) {
 	session := sqlLayer.GetFreshSession()
 	var user appuser.User
 	if session.Where(in).First(&user).RecordNotFound() {
-		return user, gorm.ErrRecordNotFound
+		log.Printf("not found")
+		return nil, gorm.ErrRecordNotFound
 	}
-	return user, nil
+	return &user, nil
 }
 
 func (db *MysqlLayer) GetFreshSession() *gorm.DB {

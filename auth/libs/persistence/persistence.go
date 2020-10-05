@@ -18,7 +18,7 @@ type DBConfig struct {
 type DatabaseHandler interface{
 	AddUser(appuser.User) error
 	AllUsers() ([]appuser.User, error)
-	GetUser(*appuser.User) (appuser.User, error)
+	GetUser(*appuser.User) (*appuser.User, error)
 	UpdateUser(*appuser.UpdateArg)  error
 	FindUsers() ([]appuser.User, error)
 	//
