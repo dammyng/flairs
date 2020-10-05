@@ -68,7 +68,7 @@ func (a *App) InitHandler() {
 	redisPool := redisconn.NewPool(os.Getenv("REDIS_URL"))
 	redisConn := redisPool.Get()
 
-	defer redisConn.Close()
+	//defer redisConn.Close()
 
 	r := rest.ServerRouter(eventEmitter, redisConn)
 

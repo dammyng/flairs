@@ -5,9 +5,13 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
+	"log"
 	"net/http"
 	"shared/events"
 	amqp "shared/events/amqp"
+	"time"
+
+	"github.com/gorilla/mux"
 
 	"golang.org/x/crypto/bcrypt"
 
@@ -45,8 +49,8 @@ func (serviceHandler ServiceHandler) Register(w http.ResponseWriter, r *http.Req
 	payload.Email = strings.ToLower(payload.Email)
 
 	// Find user
-	u, err := authclient.GetAUser(&appuser.UserArg{UserPayload: &appuser.User{Email: payload.Email}}); 
-	if u != nil{
+	u, err := authclient.GetAUser(&appuser.UserArg{UserPayload: &appuser.User{Email: payload.Email}})
+	if u != nil {
 		helper.DisplayAppError(
 			w,
 			fmt.Errorf("Duplicate entry Error"),
@@ -63,8 +67,6 @@ func (serviceHandler ServiceHandler) Register(w http.ResponseWriter, r *http.Req
 		)
 		return
 	}
-
-	
 
 	// User was not found so we create a new user instance
 	ID := uuid.NewV4()
@@ -91,18 +93,30 @@ func (serviceHandler ServiceHandler) Register(w http.ResponseWriter, r *http.Req
 
 		user.Referrer = ref
 	}
-	if _, err := authclient.AddNewUser(&appuser.UserArg{UserPayload: &user}); err != nil{
+	if _, err := authclient.AddNewUser(&appuser.UserArg{UserPayload: &user}); err != nil {
 		helper.DisplayAppError(w, err, UserCreationError, http.StatusBadRequest)
 		return
 	}
 	// Send user the message token to verify email
+	token := helper.RandInt(6)
+	_, err = serviceHandler.RedisConn.Do("HMSET", "email:verification", user.Email, token)
+
+	// TODO how to handle this error
+	if err != nil {
+		log.Fatal(err)
+	}
+	_, err = serviceHandler.RedisConn.Do("HMSET", "password:reset", user.Email, token)
+	if err != nil {
+		log.Fatal(err)
+	}
 	// Do it with Rabbit
 
 	data := helper.HttpResponse{
 		Message: UserCreationSuccessful,
 		Code:    http.StatusCreated,
 	}
-	helper.WriteJsonResponse(w, data, http.StatusOK)}
+	helper.WriteJsonResponse(w, data, http.StatusOK)
+}
 
 func getPasswordHash(password string) ([]byte, error) {
 	b, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
@@ -155,4 +169,64 @@ func (serviceHandler ServiceHandler) Find(w http.ResponseWriter, r *http.Request
 	}
 
 	serviceHandler.EventEmitter.Emit(&msg, "auth")
+}
+
+func (serviceHandler ServiceHandler) VerifyEmail(w http.ResponseWriter, r *http.Request) {
+
+	vars := mux.Vars(r)
+	email, ok := vars["email"]
+	email = strings.ToLower(email)
+	if !ok {
+		helper.DisplayAppError(w, fmt.Errorf("invalid url email argument not supplied"), " Invalid request",
+			http.StatusBadRequest)
+		return
+	}
+	requestToken, ok := vars["token"]
+	if !ok {
+		helper.DisplayAppError(w, fmt.Errorf("Invalid url token argument not supplied"), "error processing request",
+			http.StatusBadRequest)
+		return
+	}
+	token, err := redis.String(serviceHandler.RedisConn.Do("HGET", "email:verification", email))
+	if err != nil {
+		if err == redis.ErrNil {
+			helper.DisplayAppError(w, fmt.Errorf("Invalid or incorrect token"),
+				"error processing request", http.StatusBadRequest)
+			return
+
+		}
+
+		log.Fatal(err)
+	}
+	if token == "" {
+		helper.DisplayAppError(w, fmt.Errorf("Invalid or incorrect token"),
+			"error processing request", http.StatusBadRequest)
+		return
+	}
+
+	//log.Printf("found token is %v \n", token)
+	//fmt.Printf("requestToken token is %v \n", requestToken)
+
+	if match := token == requestToken; match {
+		user, err := authclient.GetAUser(&appuser.UserArg{UserPayload: &appuser.User{Email: email}})
+
+		if err != nil {
+			helper.DisplayAppError(w, err, "error fetching user record ", http.StatusExpectationFailed)
+
+			return
+		}
+
+		currentTime := time.Now()
+		//fmt.Println("current time is %v", currentTime)
+		_, err = authclient.UpdateUser(&appuser.UpdateArg{NewObj: &appuser.User{EmailVerifiedAt: currentTime.Format(time.RFC3339)}, OldUser: user})
+		// TODO handle error
+		if err != nil {
+			log.Fatal(err)
+		}
+		redis.Int(serviceHandler.RedisConn.Do("HDEL", "email:verification", email))
+		helper.WriteJsonResponse(w, map[string]interface{}{"message": "successfully verified email address"}, http.StatusOK)
+
+	} else {
+		helper.DisplayAppError(w, fmt.Errorf("Not Found"), UserNotFound, http.StatusNotFound)
+	}
 }

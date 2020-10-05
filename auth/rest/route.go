@@ -18,6 +18,7 @@ func ServerRouter(eventEmitter amqp.EventEmitter, redisConn redis.Conn ) *mux.Ro
 	authRouter.Methods("POST").Path("/register").HandlerFunc(handler.Register)
 	//authRouter.Methods("PUT").Path("/users").HandlerFunc(handler.Update)
 	//authRouter.Methods("PUT").Path("/login").HandlerFunc(handler.Login)
+	authRouter.Methods("GET").Path("/verifyemail/{email}/{token}").HandlerFunc(handler.VerifyEmail)
 
 	return r
 }
