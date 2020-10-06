@@ -79,3 +79,21 @@ func UpdateUser(in *appuser.UpdateArg) (*appuser.Empty, error) {
 	}
 	return new(appuser.Empty), nil
 }
+
+func UpdateUserMap(in *appuser.UpdateArg) (*appuser.Empty, error) {
+	var conn *grpc.ClientConn
+	conn, err := grpc.Dial(":9011", grpc.WithInsecure())
+	if err != nil {
+		log.Fatalf("did not connect: %s", err)
+	}
+	defer conn.Close()
+
+	authClient := appuser.NewUserServiceClient(conn)
+
+	_, err = authClient.UpdateUser(context.Background(), in)
+
+	if err != nil {
+		return new(appuser.Empty), err
+	}
+	return new(appuser.Empty), nil
+}

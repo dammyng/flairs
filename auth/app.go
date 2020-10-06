@@ -37,6 +37,7 @@ func (a *App) InitDB() {
 	LoadEnv()
 	dbHandler := persistence.NewMysqlLayer(os.Getenv("DBConfig"))
 	dbHandler.Session.Exec(setup.SetTimeZone)
+	dbHandler.Session.Exec(setup.SQLMode)
 	dbHandler.Session.Exec(setup.CreateDatabase)
 	dbHandler.Session.Exec(setup.UseAlphaPlus)
 	dbHandler.Session.Exec(setup.CreateUserTable)

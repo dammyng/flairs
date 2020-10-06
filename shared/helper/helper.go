@@ -2,7 +2,9 @@ package helper
 
 import (
 	"encoding/json"
+	"fmt"
 	"net/http"
+	"strings"
 )
 
 type(
@@ -18,6 +20,26 @@ type(
 			}
 )
 
+
+func GetHeaders(r *http.Request, headers ...string) map[string]interface{} {
+	var requestHeaders map[string]interface{}
+
+	requestHeaders = make(map[string]interface{})
+
+ 	var value string
+ 	for _, headerName := range headers {
+ 		value = r.Header.Get(headerName)
+ 		value = strings.TrimSpace(value)
+ 		if len(value) == 0 {
+ 			requestHeaders[headerName] = nil
+ 			continue
+ 		}
+ 		requestHeaders[headerName] = value
+ 	}
+
+ 	return requestHeaders
+ }
+
 func WriteJsonResponse(w http.ResponseWriter, data interface{}, code int)  {
 	w.Header().Set("Content-Type", "application/json; charset=utf-8")
 	w.WriteHeader(code)
@@ -26,6 +48,14 @@ func WriteJsonResponse(w http.ResponseWriter, data interface{}, code int)  {
 		DisplayAppError(w, err, "Json marshal error", http.StatusForbidden)
 	}
 	w.Write(j)
+}
+func DecodeRequestData(w http.ResponseWriter, r *http.Request, payload interface{}) error {
+	err := json.NewDecoder(r.Body).Decode(payload)
+	if err != nil {
+		fmt.Fprintf(w, "err decoding request :%s \n", err)
+		w.WriteHeader(http.StatusBadRequest)
+	}
+	return err
 }
 
 func DisplayAppError(w http.ResponseWriter, err error, message string, code int) {
