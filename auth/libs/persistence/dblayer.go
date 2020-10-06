@@ -40,11 +40,13 @@ func (sqlLayer *MysqlLayer) AllUsers() ([]appuser.User, error) {
 	}
 	return users, nil
 }
-// FindUsers - return a list of users 
+
+// FindUsers - return a list of users
 func (sqlLayer *MysqlLayer) FindUsers() ([]appuser.User, error) {
 	users := []appuser.User{}
 	return users, nil
 }
+
 // UpdateUser - update a user but not in the DB
 func (sqlLayer *MysqlLayer) UpdateUser(data *appuser.UpdateArg) error {
 	session := sqlLayer.GetFreshSession()
@@ -62,10 +64,15 @@ func (sqlLayer *MysqlLayer) GetUser(in *appuser.User) (*appuser.User, error) {
 	return &user, nil
 }
 
-
 func (db *MysqlLayer) AddCardRequest(cardReq appuser.CardRequest) error {
 	session := db.GetFreshSession()
 	return session.Save(&cardReq).Error
+}
+
+
+func (db *MysqlLayer) AddWallet(wallet appuser.Wallet) error {
+	session := db.GetFreshSession()
+	return session.Save(&wallet).Error
 }
 
 func (db *MysqlLayer) FindUserCardRequests(id string) ([]appuser.CardRequest, error) {
@@ -78,7 +85,7 @@ func (db *MysqlLayer) FindUserCardRequests(id string) ([]appuser.CardRequest, er
 	var _cr appuser.CardRequest
 	var cr []appuser.CardRequest
 	for rows.Next() {
-		if err := rows.Scan(&_cr.ID, &_cr.UserID, &_cr.Color, &_cr.Currency); err != nil {
+		if err := rows.Scan(&_cr.ID, &_cr.UserId, &_cr.Color, &_cr.Currency); err != nil {
 			log.Fatalln(err.Error())
 		}
 		//	log.Println(_cr.ID)
@@ -88,7 +95,8 @@ func (db *MysqlLayer) FindUserCardRequests(id string) ([]appuser.CardRequest, er
 	//log.Println(len(cr))
 	return cr, err
 }
-func (db *MysqlLayer) FindCardRequestById(id string) (CardRequest, error) {
+
+func (db *MysqlLayer) FindCardRequestById(id string) (appuser.CardRequest, error) {
 	session := db.GetFreshSession()
 	cardReq := appuser.CardRequest{}
 	//fmt.Println("id is : ", id)
@@ -96,6 +104,37 @@ func (db *MysqlLayer) FindCardRequestById(id string) (CardRequest, error) {
 		return cardReq, gorm.ErrRecordNotFound
 	}
 	return cardReq, nil
+}
+
+func (db *MysqlLayer) FindUserWallets(id string) ([]appuser.Wallet, error) {
+	session := db.GetFreshSession()
+	rows, err := session.Model(&appuser.Wallet{}).Where("user_id = ?", id).Rows()
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var _cr appuser.Wallet
+	var cr []appuser.Wallet
+	for rows.Next() {
+		if err := rows.Scan(&_cr.WalletID, &_cr.UserId, &_cr.WalletNo); err != nil {
+			log.Fatalln(err.Error())
+		}
+		//	log.Println(_cr.ID)
+		//session.ScanRows(rows, &_cr)
+		cr = append(cr, _cr)
+	}
+	//log.Println(len(cr))
+	return cr, err
+}
+
+func (db *MysqlLayer) FindWalletById(id string) (appuser.Wallet, error) {
+	session := db.GetFreshSession()
+	wallet := appuser.Wallet{}
+	//fmt.Println("id is : ", id)
+	if session.Model(&wallet).Where("id = ? ", id).First(&wallet).RecordNotFound() {
+		return wallet, gorm.ErrRecordNotFound
+	}
+	return wallet, nil
 }
 
 func (db *MysqlLayer) GetFreshSession() *gorm.DB {

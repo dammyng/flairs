@@ -29,4 +29,6 @@ type DatabaseHandler interface{
 	AddCardRequest(appuser.CardRequest) error
 	FindCardRequestById(string) (appuser.CardRequest, error)
 	FindUserCardRequests(string) ([]appuser.CardRequest, error)
+	FindWalletById(string) (appuser.Wallet, error)
+	FindUserWallets(string) ([]appuser.Wallet, error)
 }

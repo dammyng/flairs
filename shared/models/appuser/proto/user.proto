@@ -69,6 +69,10 @@ message CardRequest{
     string updatedAt = 6;
 }
 
+message CardRequests {
+    repeated CardRequest results = 1;
+}
+
 message Wallet{
     string userId = 2;
     double customerID = 3;
@@ -79,6 +83,10 @@ message Wallet{
     string walletNo = 8;
     string currency = 9;
     string dateCreated = 11;
+}
+
+message Wallets {
+    repeated Wallet results = 1;
 }
 
 message WalletArg{
@@ -93,7 +101,9 @@ service UserService{
     rpc NewWallet (Wallet) returns (Wallet){}
     rpc FindUsers (UserArg) returns (Users){}
     rpc FindWallet (Wallet) returns (Wallet){}
+    rpc UserWallets (WalletArg) returns (Wallets){}
     rpc FindCardRequest (CardRequest) returns (CardRequest){}
+    rpc FindUserCardRequests (CardRequest) returns (CardRequests){}
     rpc GetUser (UserArg) returns (User){}
     rpc AddUser (UserArg) returns (User){}
     rpc UpdateUser (UpdateArg) returns (Empty){}
