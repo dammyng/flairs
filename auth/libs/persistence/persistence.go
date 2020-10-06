@@ -25,4 +25,8 @@ type DatabaseHandler interface{
 	GetFreshSession() *gorm.DB
 	DoMigrations()
 	Close()
+	//
+	AddCardRequest(appuser.CardRequest) error
+	FindCardRequestById(string) (appuser.CardRequest, error)
+	FindUserCardRequests(string) ([]appuser.CardRequest, error)
 }

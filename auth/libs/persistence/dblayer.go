@@ -62,6 +62,42 @@ func (sqlLayer *MysqlLayer) GetUser(in *appuser.User) (*appuser.User, error) {
 	return &user, nil
 }
 
+
+func (db *MysqlLayer) AddCardRequest(cardReq appuser.CardRequest) error {
+	session := db.GetFreshSession()
+	return session.Save(&cardReq).Error
+}
+
+func (db *MysqlLayer) FindUserCardRequests(id string) ([]appuser.CardRequest, error) {
+	session := db.GetFreshSession()
+	rows, err := session.Model(&appuser.CardRequest{}).Where("user_id = ?", id).Select("id,user_id,color,currency").Rows()
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var _cr appuser.CardRequest
+	var cr []appuser.CardRequest
+	for rows.Next() {
+		if err := rows.Scan(&_cr.ID, &_cr.UserID, &_cr.Color, &_cr.Currency); err != nil {
+			log.Fatalln(err.Error())
+		}
+		//	log.Println(_cr.ID)
+		//session.ScanRows(rows, &_cr)
+		cr = append(cr, _cr)
+	}
+	//log.Println(len(cr))
+	return cr, err
+}
+func (db *MysqlLayer) FindCardRequestById(id string) (CardRequest, error) {
+	session := db.GetFreshSession()
+	cardReq := appuser.CardRequest{}
+	//fmt.Println("id is : ", id)
+	if session.Model(&cardReq).Where("id = ? ", id).First(&cardReq).RecordNotFound() {
+		return cardReq, gorm.ErrRecordNotFound
+	}
+	return cardReq, nil
+}
+
 func (db *MysqlLayer) GetFreshSession() *gorm.DB {
 	session := db.Session.New()
 	session.Exec(setup.SetTimeZone)

@@ -72,6 +72,16 @@ type User struct {
 	UpdatedAt       time.Time `gorm:"default:CURRENT_TIMESTAMP"`
 }
 
+
+type CardRequest struct {
+	ID        string    `gorm:"primary_key"`
+	UserID    string    `gorm:"primary_key"`
+	Color     string    `gorm:"size:255;not null"`
+	Currency  string    `gorm:"size:255;not null"`
+	CreatedAt time.Time `gorm:"default:CURRENT_TIMESTAMP"`
+	UpdatedAt time.Time `gorm:"default:CURRENT_TIMESTAMP"`
+}
+
 type Card struct {
 	gorm.Model
 	// owner
