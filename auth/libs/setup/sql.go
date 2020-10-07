@@ -44,4 +44,39 @@ var (
 	InsertDemoUser    = "INSERT INTO `users` (`id`, `first_name`, `last_name`, `address`, `street`, `city`, `postal_code`, `state`, `country`, `referrer`, `ref_code`, `how_did_u_hear_about_us`, `username`, `last_card_request`, `passport`, `id_card`, `bvn`, `wallet`, `customer`, `gender`, `dob`, `email`, `email_verified_at`, `password`, `pin`, `is_profile_complete`, `phone_number`, `phone_verified_at`, `photo`, `type`, `country_id`, `created_at`, `updated_at`) VALUES ('a65a388b-9c94-46f8-a99a-90c4807ce83b', '', '', '', '', '', '', '', '', '', '1EqSqWxQfE4OSRc', '', '', '', '', '', '', 0, 0, '', '2020-07-06 14:32:52', 'someone@flairs.com', '2020-07-06 14:32:52', 0x2432612431302474467758624b78596831454e4b4255707148426235754f65485746576f54756e4943587355676f67516b705150384c306674726943, NULL, 0, '', '2020-07-06 14:32:52', '', '', 0, '2020-07-06 14:32:52', '2020-07-06 14:32:52');"
 	SelectDefaultUser = "SELECT * FROM users WHERE id='a65a388b-9c94-46f8-a99a-90c4807ce83b' OR Email='someone@flairs.com';"
 	ClearUserTable    = "DELETE FROM users;"
+
+	CreateWalletTable = ``
+	CreateCardRequestTable = ``
 )
+
+
+DROP TABLE IF EXISTS `wallets`;
+CREATE TABLE `wallets` (
+  `id` int(10) UNSIGNED NOT NULL,
+  `created_at` timestamp NULL DEFAULT NULL,
+  `updated_at` timestamp NULL DEFAULT NULL,
+  `deleted_at` timestamp NULL DEFAULT NULL,
+  `user_id` varchar(255) NOT NULL,
+  `customer_id` bigint(20) NOT NULL,
+  `available_bal` varchar(255) DEFAULT NULL,
+  `ledger_bal` varchar(255) DEFAULT NULL,
+  `account_type` varchar(1) NOT NULL,
+  `wallet_id` bigint(20) NOT NULL,
+  `wallet_no` varchar(255) NOT NULL,
+  `currency` varchar(20) NOT NULL,
+  `status` varchar(255) DEFAULT NULL,
+  `date_created` varchar(255) DEFAULT NULL,
+  `date_bal_updated` varchar(255) DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+
+
+
+DROP TABLE IF EXISTS `card_requests`;
+CREATE TABLE `card_requests` (
+  `id` varchar(255) NOT NULL DEFAULT '',
+  `user_id` varchar(255) NOT NULL DEFAULT '',
+  `color` varchar(255) NOT NULL,
+  `currency` varchar(255) NOT NULL,
+  `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
