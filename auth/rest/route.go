@@ -34,6 +34,8 @@ func ServerRouter(eventEmitter amqp.EventEmitter, redisConn redis.Conn) *mux.Rou
 	acctRouter := acctBase.PathPrefix("/account").Subrouter()
 
 	acctRouter.Methods("GET", "PATCH").Path("/user").HandlerFunc(handler.UserData)
+	acctRouter.Methods("GET", "POST").Path("/card_request").HandlerFunc(handler.CardRequest)
+	acctRouter.Methods("GET", "POST").Path("/wallets").HandlerFunc(handler.Wallet)
 
 
 	return r

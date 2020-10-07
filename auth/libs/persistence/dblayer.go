@@ -116,7 +116,7 @@ func (db *MysqlLayer) FindUserWallets(id string) ([]appuser.Wallet, error) {
 	var _cr appuser.Wallet
 	var cr []appuser.Wallet
 	for rows.Next() {
-		if err := rows.Scan(&_cr.WalletID, &_cr.UserId, &_cr.WalletNo); err != nil {
+		if err := rows.Scan(&_cr.WalletSig, &_cr.UserId, &_cr.WalletNo); err != nil {
 			log.Fatalln(err.Error())
 		}
 		//	log.Println(_cr.ID)

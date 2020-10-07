@@ -504,3 +504,122 @@ func (serviceHandler ServiceHandler) UserData(w http.ResponseWriter, r *http.Req
 	helper.WriteJsonResponse(w, map[string]interface{}{"message": RecordUpdateSuccessful, "data": persistence.CleanJson(*user)}, http.StatusOK)
 
 }
+
+
+func (serviceHandler ServiceHandler) CardRequest(w http.ResponseWriter, r *http.Request) {
+	userId, ok := r.Context().Value("user").(string)
+
+	if !ok {
+		helper.DisplayAppError(w, fmt.Errorf("Invalid request"), ProcessingRequestError, http.StatusForbidden)
+		return
+	}
+	user, err := authclient.GetAUser(&appuser.UserArg{UserPayload: &appuser.User{ID: userId}})
+	if err != nil {
+		helper.DisplayAppError(w,
+			err,
+			InternalServerError,
+			http.StatusBadRequest,
+		)
+		return
+	}
+	if r.Method == "GET" {
+		cr, err := authclient.GetUserCardRequest(&appuser.CardRequest{UserId: userId})
+		if err != nil {
+			helper.DisplayAppError(
+				w, err, InternalServerError, http.StatusBadRequest)
+		}
+		helper.WriteJsonResponse(w, map[string]interface{}{"card_requests": cr}, http.StatusOK)
+		return
+	}
+	var payload CardRequestPayload
+
+	err = helper.DecodeRequestData(w, r, &payload)
+	if err != nil {
+		helper.DisplayAppError(w,
+			err,
+			InvalidRequest,
+			http.StatusBadRequest,
+		)
+
+		return
+	}
+
+	cardReqId := uuid.NewV4().String()
+
+	cardReq := appuser.CardRequest{
+		ID:       cardReqId,
+		Color:    payload.Color,
+		Currency: payload.Currency,
+		UserId:   userId,
+	}
+	_, err = authclient.CreateCardRequest(&cardReq)
+	if err != nil {
+		helper.DisplayAppError(w, err, ProcessingRequestError, http.StatusBadRequest)
+		return
+
+	}
+	userData := appuser.User{
+		LastCardRequested: cardReqId,
+	}
+
+	_, err = authclient.UpdateUser(&appuser.UpdateArg{NewObj: &userData, OldUser: user})
+
+	helper.WriteJsonResponse(w, map[string]interface{}{"message": CardRequestSuccessful, "card_request": cardReq}, http.StatusOK)
+
+}
+
+
+func (serviceHandler ServiceHandler) Wallet(w http.ResponseWriter, r *http.Request) {
+	userId, ok := r.Context().Value("user").(string)
+
+	if !ok {
+		helper.DisplayAppError(w, fmt.Errorf("Invalid request"), ProcessingRequestError, http.StatusForbidden)
+		return
+	}
+	_, err := authclient.GetAUser(&appuser.UserArg{UserPayload: &appuser.User{ID: userId}})
+	if err != nil {
+		helper.DisplayAppError(w,
+			err,
+			InternalServerError,
+			http.StatusBadRequest,
+		)
+		return
+	}
+	if r.Method == "GET" {
+		cr, err := authclient.GetUserWallets(&appuser.WalletArg{UserId: userId})
+		if err != nil {
+			helper.DisplayAppError(
+				w, err, InternalServerError, http.StatusBadRequest)
+		}
+		helper.WriteJsonResponse(w, map[string]interface{}{"card_requests": cr}, http.StatusOK)
+		return
+	}
+	var payload WalletPayload
+
+	err = helper.DecodeRequestData(w, r, &payload)
+	if err != nil {
+		helper.DisplayAppError(w,
+			err,
+			InvalidRequest,
+			http.StatusBadRequest,
+		)
+
+		return
+	}
+
+	walletId := uuid.NewV4().String()
+	
+	newWallet := appuser.Wallet{
+		ID: walletId,
+		UserId:   userId,
+	}
+	_, err = authclient.CreateNewWallet(&newWallet)
+	if err != nil {
+		helper.DisplayAppError(w, err, ProcessingRequestError, http.StatusBadRequest)
+		return
+
+	}
+	
+	helper.WriteJsonResponse(w, map[string]interface{}{"message": "Done"}, http.StatusOK)
+
+}

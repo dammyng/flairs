@@ -42,4 +42,13 @@ type (
 
 		Pin string `json:"pin,omitempty"`
 	}
+	CardRequestPayload struct {
+		ID       string `json:"id,-"`
+		Color    string `json:"color,omitempty"`
+		Currency string `json:"currency,omitempty"`
+	}
+
+	WalletPayload struct {
+		Type    string `json:"type,omitempty"`
+	}
 )
