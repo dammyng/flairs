@@ -41,6 +41,8 @@ func (a *App) InitDB() {
 	dbHandler.Session.Exec(setup.CreateDatabase)
 	dbHandler.Session.Exec(setup.UseAlphaPlus)
 	dbHandler.Session.Exec(setup.CreateUserTable)
+	dbHandler.Session.Exec(setup.CreateCardRequestTable)
+	dbHandler.Session.Exec(setup.CreateWalletTable)
 	a.DbHandler = dbHandler
 }
 

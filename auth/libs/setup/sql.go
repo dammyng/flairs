@@ -45,38 +45,31 @@ var (
 	SelectDefaultUser = "SELECT * FROM users WHERE id='a65a388b-9c94-46f8-a99a-90c4807ce83b' OR Email='someone@flairs.com';"
 	ClearUserTable    = "DELETE FROM users;"
 
-	CreateWalletTable = ``
-	CreateCardRequestTable = ``
+	CreateWalletTable = `CREATE TABLE IF NOT EXISTS wallets (
+		id varchar(255) NOT NULL UNIQUE,
+		created_at timestamp NULL DEFAULT NULL,
+		updated_at timestamp NULL DEFAULT NULL,
+		deleted_at timestamp NULL DEFAULT NULL,
+		user_id varchar(255) NOT NULL,
+		customer_id bigint(20) NOT NULL,
+		available_bal varchar(255) DEFAULT NULL,
+		ledger_bal varchar(255) DEFAULT NULL,
+		account_type varchar(1) NOT NULL,
+		wallet_id bigint(20) NOT NULL,
+		wallet_no varchar(255) NOT NULL,
+		currency varchar(20) NOT NULL,
+		status varchar(255) DEFAULT NULL,
+		date_created varchar(255) DEFAULT NULL,
+		date_bal_updated varchar(255) DEFAULT NULL
+	  ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+	  `
+	CreateCardRequestTable = `CREATE TABLE IF NOT EXISTS card_requests(
+		id varchar(255) NOT NULL DEFAULT '',
+		user_id varchar(255) NOT NULL DEFAULT '',
+		color varchar(255) NOT NULL,
+		currency varchar(255) NOT NULL,
+		created_at timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+		updated_at timestamp NULL DEFAULT CURRENT_TIMESTAMP
+	  ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+	`
 )
-
-
-DROP TABLE IF EXISTS `wallets`;
-CREATE TABLE `wallets` (
-  `id` int(10) UNSIGNED NOT NULL,
-  `created_at` timestamp NULL DEFAULT NULL,
-  `updated_at` timestamp NULL DEFAULT NULL,
-  `deleted_at` timestamp NULL DEFAULT NULL,
-  `user_id` varchar(255) NOT NULL,
-  `customer_id` bigint(20) NOT NULL,
-  `available_bal` varchar(255) DEFAULT NULL,
-  `ledger_bal` varchar(255) DEFAULT NULL,
-  `account_type` varchar(1) NOT NULL,
-  `wallet_id` bigint(20) NOT NULL,
-  `wallet_no` varchar(255) NOT NULL,
-  `currency` varchar(20) NOT NULL,
-  `status` varchar(255) DEFAULT NULL,
-  `date_created` varchar(255) DEFAULT NULL,
-  `date_bal_updated` varchar(255) DEFAULT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=latin1;
-
-
-
-DROP TABLE IF EXISTS `card_requests`;
-CREATE TABLE `card_requests` (
-  `id` varchar(255) NOT NULL DEFAULT '',
-  `user_id` varchar(255) NOT NULL DEFAULT '',
-  `color` varchar(255) NOT NULL,
-  `currency` varchar(255) NOT NULL,
-  `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
-  `updated_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP
-) ENGINE=InnoDB DEFAULT CHARSET=latin1;
