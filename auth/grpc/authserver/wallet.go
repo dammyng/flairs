@@ -58,7 +58,8 @@ func (a *AuthServer) NewWallet(ctx context.Context, in *appuser.Wallet) (*appuse
 	if err != nil {
 		return nil, err
 	}
-	return nil, err}
+	return new(appuser.Wallet), err
+}
 
 
 // GetUser - get a single user

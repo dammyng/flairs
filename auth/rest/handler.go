@@ -288,6 +288,24 @@ func (serviceHandler ServiceHandler) VerifyEmail(w http.ResponseWriter, r *http.
 			log.Fatal(err)
 		}
 		redis.Int(serviceHandler.RedisConn.Do("HDEL", "email:verification", email))
+		ID := uuid.NewV4().String()
+		_, err = authclient.CreateNewWallet(&appuser.Wallet{
+			AccountType:"0",
+			Currency:"NAIRA",
+			CustomerID:0.01,
+			DateCreated: "",
+			ID:ID,
+			LedgerBal:"",
+			UserId:user.ID,
+			WalletNo:"",
+			WalletSig:0.01,
+			
+		})
+
+		if err != nil {
+			log.Println(err)
+		}
+
 		helper.WriteJsonResponse(w, map[string]interface{}{"message": "successfully verified email address"}, http.StatusOK)
 
 	} else {
