@@ -8,12 +8,12 @@ import (
 	"github.com/streadway/amqp"
 )
 
-type amqpEventListener struct{
+type amqpEventListener struct {
 	connection *amqp.Connection
-	queue string
+	queue      string
 }
 
-func (a *amqpEventListener) setup() error  {
+func (a *amqpEventListener) setup() error {
 	channel, err := a.connection.Channel()
 	if err != nil {
 		return err
@@ -21,14 +21,15 @@ func (a *amqpEventListener) setup() error  {
 
 	defer channel.Close()
 
-	_, err = channel.QueueDeclare(a.queue, true, false,false,false,nil)
+	_, err = channel.QueueDeclare(a.queue, true, false, false, false, nil)
 	return err
 }
+
 // NewAMQPEventListener method
-func NewAMQPEventListener(conn *amqp.Connection, queue string) (events.EventListener, error)  {
+func NewAMQPEventListener(conn *amqp.Connection, queue string) (events.EventListener, error) {
 	listener := &amqpEventListener{
 		connection: conn,
-		queue: queue,
+		queue:      queue,
 	}
 
 	err := listener.setup()
@@ -38,31 +39,31 @@ func NewAMQPEventListener(conn *amqp.Connection, queue string) (events.EventList
 	return listener, err
 }
 
-func (a *amqpEventListener) Listen(exchange string, eventnames ...string)  (<-chan events.Event, <-chan error, error){
+func (a *amqpEventListener) Listen(exchange string, eventnames ...string) (<-chan events.Event, <-chan error, error) {
 	channel, err := a.connection.Channel()
 	if err != nil {
 		return nil, nil, err
 	}
 
 	for _, eventName := range eventnames {
-		if err := channel.QueueBind(a.queue, eventName,exchange, false, nil); err !=nil{
+		if err := channel.QueueBind(a.queue, eventName, exchange, false, nil); err != nil {
 			return nil, nil, err
 		}
 	}
 
-	msgs, err := channel.Consume(a. queue, "", false, false, false, false, nil)
+	msgs, err := channel.Consume(a.queue, "", false, false, false, false, nil)
 
 	if err != nil {
-		return nil, nil,err
+		return nil, nil, err
 	}
 
 	cevents := make(chan events.Event)
 	errors := make(chan error)
 
-	go func ()  {
+	go func() {
 		for msg := range msgs {
 			rawEventName, ok := msg.Headers["x-event-name"]
-			if !ok{
+			if !ok {
 				errors <- fmt.Errorf("msg did not contain a header name")
 				msg.Nack(false, false)
 				continue
@@ -70,7 +71,7 @@ func (a *amqpEventListener) Listen(exchange string, eventnames ...string)  (<-ch
 
 			eventName, ok := rawEventName.(string)
 
-			if !ok{
+			if !ok {
 				errors <- fmt.Errorf("x-event-name header is not string but %T", rawEventName)
 				msg.Nack(false, false)
 				continue
@@ -81,6 +82,12 @@ func (a *amqpEventListener) Listen(exchange string, eventnames ...string)  (<-ch
 			switch eventName {
 			case "user.created":
 				event = new(events.UserCreatedEvent)
+			case "user.reset_password":
+				event = new(events.PasswordReset)
+			case "otp.created":
+				event = new(events.OTPCreated)
+			case "user.welcome":
+				event = new(events.WelcomeUserEvent)
 			default:
 				errors <- fmt.Errorf("event type %s i unknown", eventName)
 				continue
@@ -88,7 +95,7 @@ func (a *amqpEventListener) Listen(exchange string, eventnames ...string)  (<-ch
 
 			err := json.Unmarshal(msg.Body, event)
 
-			if err != nil {		
+			if err != nil {
 				errors <- err
 				continue
 			}
