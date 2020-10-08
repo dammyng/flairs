@@ -1,7 +1,7 @@
 package grpc
 
 import (
-	v1 "auth/pkg/api/v1"
+	"auth/pkg/api/v1"
 	"context"
 	"log"
 	"net"

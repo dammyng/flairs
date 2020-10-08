@@ -21,6 +21,7 @@
   "paths": {
     "/v1/account/user": {
       "post": {
+        "summary": "Create a new user",
         "operationId": "FlairsService_AddNewUser",
         "responses": {
           "200": {

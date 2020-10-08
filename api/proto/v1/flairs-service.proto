@@ -84,10 +84,12 @@ message addNewUserResponse{
 
 
 service FlairsService{
+    
+    // Create a new user
     rpc AddNewUser (addNewUserRequest) returns (addNewUserResponse){
         option(google.api.http)={
             post: "/v1/account/user"
             body:"*"
         };
-    };
+    }
 }

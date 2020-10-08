@@ -6,7 +6,7 @@ import (
 	"context"
 	"fmt"
 	"os"
-
+	"auth/pkg/protocol/rest"
 	"github.com/jinzhu/gorm"
 )
 
