@@ -1,0 +1,93 @@
+syntax = "proto3";
+package v1;
+
+import "google/protobuf/timestamp.proto";
+import "google/api/annotations.proto";
+import "protoc-gen-swagger/options/annotations.proto";
+
+option (grpc.gateway.protoc_gen_swagger.options.openapiv2_swagger) = {
+	info: {
+		title: "Flairs service";
+		version: "1.0";
+		contact: {
+			name: "falirs mobile banking system";
+			url: "http://www.alphaplus.finance/";
+			email: "dammydarmy@gmail.com";
+        };
+    };
+    schemes: HTTP;
+    consumes: "application/json";
+    produces: "application/json";
+    responses: {
+		key: "404";
+		value: {
+			description: "Returned when the resource does not exist.";
+			schema: {
+				json_schema: {
+					type: STRING;
+				}
+			}
+		}
+	}
+};
+
+message User{
+    string ID =1;
+    string firstName =2;
+    string lastName = 3;
+    google.protobuf.Timestamp DOB = 4;
+    string gender = 5;
+    string BVN = 6;
+    string address = 7;
+    string street = 8;
+    string city = 9;
+    string postalCode = 10;
+    string state = 11;
+    string country = 12;
+    uint32 countryID = 13;
+    string photo = 900;
+    string passport = 901;
+    string IDCard = 902;
+    string referrer = 14;
+    string refCode = 15;
+    string howDidYouHearAboutUs = 16;
+    string userName = 17;
+    string email=18;
+    google.protobuf.Timestamp emailVerifiedAt = 19;
+    bytes password = 20;
+    bytes pin = 21;
+    string phoneNumber = 22;
+    google.protobuf.Timestamp phoneVerifiedAt = 23;
+    enum accountType {
+        PERSONAL = 0;
+        BUSINESS = 1;
+    };
+    accountType ACCOUNT_TYPE = 24;
+    string lastCardRequested = 25;
+    bool isProfileCompleted = 26;
+    google.protobuf.Timestamp createdAt = 29;
+    google.protobuf.Timestamp updatedAt = 30;
+}
+
+message addNewUserRequest{
+    string api = 1;
+    // Email of user to be added
+    string ID = 2;
+    string email = 3;
+}
+
+message addNewUserResponse{
+    string api = 1;
+    // ID of the created user
+    string ID = 2;
+}
+
+
+service FlairsService{
+    rpc AddNewUser (addNewUserRequest) returns (addNewUserResponse){
+        option(google.api.http)={
+            post: "/v1/account/user"
+            body:"*"
+        };
+    };
+}
