@@ -17,7 +17,7 @@ func TestMain(m *testing.M) {
 	a.StartGRPC()
 	a.InitHandler()
 	code := m.Run()
-	clearDB()
+	//clearDB()
 	os.Exit(code)
 }
 

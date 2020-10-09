@@ -23,7 +23,7 @@ message User {
     string IDCard = 902;
     string referrer = 14;
     string refCode = 15;
-    string how_did_u_hear_about_us = 16;
+    string how_did_you_hear_about_us = 16;
     string userName = 17;
     string email=18;
     string emailVerifiedAt = 19;

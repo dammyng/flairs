@@ -33,7 +33,7 @@ type (
 		Country string `json:"country,omitempty"`
 
 		Gender                  string `json:"gender,omitempty"`
-		How_did_u_hear_about_us string `json:"how_did_u_hear_about_us,omitempty"`
+		How_did_you_hear_about_us string `json:"how_did_you_hear_about_us,omitempty"`
 		Passport                string `json:"passport,omitempty"`
 		Photo                   string `json:"photo,omitempty"`
 

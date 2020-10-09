@@ -2,11 +2,13 @@ package cmd
 
 import (
 	"auth/pkg/protocol/grpc"
+	"auth/pkg/protocol/rest"
 	v1 "auth/pkg/service/v1"
 	"context"
 	"fmt"
 	"os"
-	"auth/pkg/protocol/rest"
+	_ "github.com/go-sql-driver/mysql"
+
 	"github.com/jinzhu/gorm"
 )
 
@@ -28,6 +30,8 @@ type Config struct {
 	DatastoreDBSchema string
 }
 
+
+
 // RunServer runs gRPC server and HTTP gateway
 func RunServer() error {
 	ctx := context.Background()
@@ -35,6 +39,7 @@ func RunServer() error {
 	// get configuration
 	var cfg Config
 	cfg.GRPCPort = os.Getenv("GRPCPort")
+	cfg.HTTPPort = os.Getenv("HTTPPort")
 	cfg.DatastoreDBHost = os.Getenv("DatastoreDBHost")
 	cfg.DatastoreDBUser = os.Getenv("DatastoreDBUser")
 	cfg.DatastoreDBPassword = os.Getenv("DatastoreDBPassword")

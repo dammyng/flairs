@@ -21,7 +21,7 @@ func GRPCModelToSQL(in *appuser.User) *sqlmodel.User {
 		Country:                 in.Country,
 		Referrer:                in.Referrer,
 		RefCode:                 in.RefCode,
-		How_did_u_hear_about_us: in.HowDidUHearAboutUs,
+		How_did_you_hear_about_us: in.HowDidYouHearAboutUs,
 		Username:                in.UserName,
 		LastCardRequest:         in.LastCardRequested,
 		Passport:                in.Passport,

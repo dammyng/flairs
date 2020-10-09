@@ -8,14 +8,15 @@ import "protoc-gen-swagger/options/annotations.proto";
 option (grpc.gateway.protoc_gen_swagger.options.openapiv2_swagger) = {
 	info: {
 		title: "Flairs service";
-		version: "1.0";
+        version: "1.0";
 		contact: {
 			name: "falirs mobile banking system";
 			url: "http://www.alphaplus.finance/";
 			email: "dammydarmy@gmail.com";
         };
     };
-    schemes: HTTP;
+    host:"localhost:9000";
+    schemes: [HTTP, HTTPS];
     consumes: "application/json";
     produces: "application/json";
     responses: {
@@ -71,13 +72,14 @@ message User{
 
 message addNewUserRequest{
     string api = 1;
+    
     // Email of user to be added
-    string ID = 2;
     string email = 3;
 }
 
 message addNewUserResponse{
     string api = 1;
+
     // ID of the created user
     string ID = 2;
 }

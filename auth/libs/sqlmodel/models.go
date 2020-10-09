@@ -41,7 +41,7 @@ type User struct {
 	Referrer string `json:"referrer" gorm:"size:255;"`
 	// refcode
 	RefCode                 string `json:"refcode" gorm:"size:255;"`
-	How_did_u_hear_about_us string `json:"how_did_u_hear_about_us" gorm:"size:255;"`
+	How_did_you_hear_about_us string `json:"how_did_you_hear_about_us" gorm:"size:255;"`
 
 	Username string `json:"username" gorm:"type:varchar(30);"`
 

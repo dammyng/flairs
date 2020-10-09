@@ -9,8 +9,10 @@
       "email": "dammydarmy@gmail.com"
     }
   },
+  "host": "localhost:9000",
   "schemes": [
-    "http"
+    "http",
+    "https"
   ],
   "consumes": [
     "application/json"
@@ -103,12 +105,9 @@
         "api": {
           "type": "string"
         },
-        "ID": {
+        "email": {
           "type": "string",
           "title": "Email of user to be added"
-        },
-        "email": {
-          "type": "string"
         }
       }
     },

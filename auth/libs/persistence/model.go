@@ -33,8 +33,8 @@ func CleanJson(u appuser.User) appuser.User {
 
 //IsProfileComplete check for complete ptofile
 func IsProfileComplete(u appuser.User) bool {
-	arr := [9]interface{}{u.FirstName, u.LastName, u.HowDidUHearAboutUs, u.BVN, u.DOB, u.PhoneNumber, u.Gender, u.ACCOUNT_TYPE.Type(), u.UserName}
-	arr_name := [9]interface{}{"FirstName", "LastName", "How_did_u_hear_about_us", "BVN", "DOB", "PhoneNumber", "Gender", "Type", "Username"}
+	arr := [9]interface{}{u.FirstName, u.LastName, u.HowDidYouHearAboutUs, u.BVN, u.DOB, u.PhoneNumber, u.Gender, u.ACCOUNT_TYPE.Type(), u.UserName}
+	arr_name := [9]interface{}{"FirstName", "LastName", "How_did_you_hear_about_us", "BVN", "DOB", "PhoneNumber", "Gender", "Type", "Username"}
 
 	for i, v := range arr {
 		fmt.Printf("comparing %s \n", arr_name[i])

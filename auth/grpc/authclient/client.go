@@ -1,10 +1,12 @@
 package authclient
 
 import (
+	"log"
+	"os"
+	"shared/models/appuser"
+
 	"golang.org/x/net/context"
 	"google.golang.org/grpc"
-	"log"
-	"shared/models/appuser"
 )
 
 func Connect() (interface{}, error) {
@@ -28,7 +30,7 @@ func Connect() (interface{}, error) {
 // AddNewUser grpc client to add new user
 func AddNewUser(in *appuser.UserArg) (*appuser.User, error) {
 	var conn *grpc.ClientConn
-	conn, err := grpc.Dial(":9011", grpc.WithInsecure())
+	conn, err := grpc.Dial(os.Getenv("GRPCPort"), grpc.WithInsecure())
 	if err != nil {
 		log.Fatalf("did not connect: %s", err)
 	}
@@ -46,7 +48,7 @@ func AddNewUser(in *appuser.UserArg) (*appuser.User, error) {
 
 func GetAUser(in *appuser.UserArg) (*appuser.User, error) {
 	var conn *grpc.ClientConn
-	conn, err := grpc.Dial(":9011", grpc.WithInsecure())
+	conn, err := grpc.Dial(os.Getenv("GRPCPort"), grpc.WithInsecure())
 	if err != nil {
 		log.Fatalf("did not connect: %s", err)
 	}
@@ -64,7 +66,7 @@ func GetAUser(in *appuser.UserArg) (*appuser.User, error) {
 
 func UpdateUser(in *appuser.UpdateArg) (*appuser.Empty, error) {
 	var conn *grpc.ClientConn
-	conn, err := grpc.Dial(":9011", grpc.WithInsecure())
+	conn, err := grpc.Dial(os.Getenv("GRPCPort"), grpc.WithInsecure())
 	if err != nil {
 		log.Fatalf("did not connect: %s", err)
 	}
@@ -82,7 +84,7 @@ func UpdateUser(in *appuser.UpdateArg) (*appuser.Empty, error) {
 
 func UpdateUserMap(in *appuser.UpdateArg) (*appuser.Empty, error) {
 	var conn *grpc.ClientConn
-	conn, err := grpc.Dial(":9011", grpc.WithInsecure())
+	conn, err := grpc.Dial(os.Getenv("GRPCPort"), grpc.WithInsecure())
 	if err != nil {
 		log.Fatalf("did not connect: %s", err)
 	}
