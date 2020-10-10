@@ -1,12 +1,17 @@
 package cmd
 
 import (
+	redisconn "auth/redis"
+	"auth/libs/setup"
 	"auth/pkg/protocol/grpc"
 	"auth/pkg/protocol/rest"
 	v1 "auth/pkg/service/v1"
+	v1internals "auth/internals/v1"
+
 	"context"
 	"fmt"
 	"os"
+
 	_ "github.com/go-sql-driver/mysql"
 
 	"github.com/jinzhu/gorm"
@@ -57,7 +62,8 @@ func RunServer() error {
 
 	// add MySQL driver specific parameter to parse date/time
 	// Drop it for another database
-	param := "parseTime=true"
+	param := "charset=utf8&parseTime=True&loc=Local"
+
 
 	dsn := fmt.Sprintf("%s:%s@tcp(%s)/%s?%s",
 		cfg.DatastoreDBUser,
@@ -69,9 +75,18 @@ func RunServer() error {
 	if err != nil {
 		return fmt.Errorf("failed to open database: %v", err)
 	}
+	db.Exec(setup.SQLMode)
+	sqlLayer := v1internals.NewMysqlLayer(db)
+
+
 	defer db.Close()
 
-	v1API := v1.NewFlairsServiceServer(db)
+
+	// Handler require Redis so it is initialized within
+	redisPool := redisconn.NewPool(os.Getenv("REDIS_URL"))
+	redisConn := redisPool.Get()
+
+	v1API := v1.NewFlairsServiceServer(sqlLayer, redisConn)
 
 	// run HTTP gateway
 	go func() {

@@ -2,11 +2,15 @@ package v1
 
 import (
 	v1 "auth/pkg/api/v1"
+	v1internals "auth/internals/v1"
+
 	"context"
 
 	"github.com/jinzhu/gorm"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
+	"github.com/gomodule/redigo/redis"
+
 )
 
 const (
@@ -14,12 +18,13 @@ const (
 )
 
 type flairsServiceServer struct {
-	Session *gorm.DB
+	Db v1internals.DatabaseHandler
+	RedisConn    redis.Conn
 }
 
 // NewFlairsServiceServer creates ToDo service
-func NewFlairsServiceServer(session *gorm.DB) v1.FlairsServiceServer {
-	return &flairsServiceServer{Session: session}
+func NewFlairsServiceServer(db v1internals.DatabaseHandler,redisConn redis.Conn) v1.FlairsServiceServer {
+	return &flairsServiceServer{Db: db, RedisConn:    redisConn,}
 }
 
 // checkAPI checks if the API version requested by client is supported by server

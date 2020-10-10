@@ -10,7 +10,7 @@ option (grpc.gateway.protoc_gen_swagger.options.openapiv2_swagger) = {
 		title: "Flairs service";
         version: "1.0";
 		contact: {
-			name: "falirs mobile banking system";
+			name: "flairs mobile banking system";
 			url: "http://www.alphaplus.finance/";
 			email: "dammydarmy@gmail.com";
         };
@@ -29,14 +29,25 @@ option (grpc.gateway.protoc_gen_swagger.options.openapiv2_swagger) = {
 				}
 			}
 		}
-	}
+    }
+    security_definitions: {
+           security:{
+            key:"flairs_token" 
+            value{
+                type: TYPE_API_KEY
+                in: IN_HEADER
+                name: "Authorization"
+                description: "Authentication token, passed into header"
+              }
+           }
+    }
 };
 
 message User{
     string ID =1;
     string firstName =2;
     string lastName = 3;
-    google.protobuf.Timestamp DOB = 4;
+    string DOB = 4;
     string gender = 5;
     string BVN = 6;
     string address = 7;
@@ -54,9 +65,44 @@ message User{
     string howDidYouHearAboutUs = 16;
     string userName = 17;
     string email=18;
-    google.protobuf.Timestamp emailVerifiedAt = 19;
+    string emailVerifiedAt = 19;
     bytes password = 20;
     bytes pin = 21;
+    string phoneNumber = 22;
+    string phoneVerifiedAt = 23;
+    enum accountType {
+        PERSONAL = 0;
+        BUSINESS = 1;
+    };
+    accountType ACCOUNT_TYPE = 24;
+    string lastCardRequested = 25;
+    bool isProfileCompleted = 26;
+    google.protobuf.Timestamp createdAt = 29;
+    google.protobuf.Timestamp updatedAt = 30;
+}
+
+message Profile{
+    string ID =1;
+    string firstName =2;
+    string lastName = 3;
+    google.protobuf.Timestamp DOB = 4;
+    string gender = 5;
+    string address = 7;
+    string street = 8;
+    string city = 9;
+    string postalCode = 10;
+    string state = 11;
+    string country = 12;
+    uint32 countryID = 13;
+    string photo = 900;
+    string passport = 901;
+    string IDCard = 902;
+    string referrer = 14;
+    string refCode = 15;
+    string howDidYouHearAboutUs = 16;
+    string userName = 17;
+    string email=18;
+    google.protobuf.Timestamp emailVerifiedAt = 19;
     string phoneNumber = 22;
     google.protobuf.Timestamp phoneVerifiedAt = 23;
     enum accountType {
@@ -74,7 +120,9 @@ message addNewUserRequest{
     string api = 1;
     
     // Email of user to be added
-    string email = 3;
+    string email = 2;
+        // Referral code if available
+        string ref = 3;
 }
 
 message addNewUserResponse{
@@ -84,13 +132,142 @@ message addNewUserResponse{
     string ID = 2;
 }
 
+message validateEmailRequest{
+    string api = 1;
+    
+    // Email of user to be validated
+    string email = 2;
+    // Token for validation
+    string token = 3;
+}
+
+
+message setPasswordRequest{
+    string api = 1;
+        // jwt token for authentication
+        string token = 2;    
+    // Email of user to set password
+    string email = 3;
+    // Password to be added
+    string password = 4;
+}
+
+message resetPasswordRequest{
+    string api = 1;
+        // jwt token for authentication
+        string token = 2;    
+    // Email of user to set password
+    string email = 3;
+    // Password to be added
+    string password = 4;
+}
+
+
+message readUserByRequest{
+    string api = 1;
+        // jwt token for authentication
+        string token = 2;    
+
+        enum user_identifier {
+            EMAIL = 0;
+            ID = 1;
+            REFCODE = 2;
+        };
+
+    // Unique identifier  of user to be read
+    user_identifier identifier = 3;
+
+}
+
+message readUserByResponse{
+    string api = 1;
+    
+    // User entity read br request
+    Profile user = 2;
+}
+
+
+message LoginRequest{
+    string api = 1;
+    
+    // Unique email address of the user entity
+    string email = 2;
+    // password of the user entity
+    string password = 3;
+}
+
+message LoginResponse{
+    string api = 1;
+    
+    // jwt token for authentication
+    string token = 2;
+    // User entity read br request
+    Profile user = 3;
+}
+
+
+
+message customResponse{
+    string api = 1;
+    
+    // Request title for message
+    string request = 2;
+    // Custom message in response
+    string message = 3;
+}
 
 service FlairsService{
-    
     // Create a new user
     rpc AddNewUser (addNewUserRequest) returns (addNewUserResponse){
-        option(google.api.http)={
-            post: "/v1/account/user"
+        option (google.api.http)={
+            get: "/v1/account/user/{email}"
+        };
+        option (grpc.gateway.protoc_gen_swagger.options.openapiv2_operation) = {
+            security: { } 
+        };
+    }
+
+     // Verify a new email address
+     rpc ValidateUserEmail (validateEmailRequest) returns (customResponse){
+        option (google.api.http) = {
+            get: "/v1/account/verify_email/{email}/{token}"
+        };
+        option (grpc.gateway.protoc_gen_swagger.options.openapiv2_operation) = {
+            security: { } 
+        };
+    }
+
+    // Set user password
+    rpc SetUserPassword (setPasswordRequest) returns (customResponse){
+        option (google.api.http)={
+            post: "/v1/account/set_password/{token}"
+            body:"*"
+        };
+    }
+
+        // Reset user password
+        rpc ResetUserPassword (resetPasswordRequest) returns (customResponse){
+            option (google.api.http)={
+                post: "/v1/account/reset_password/{token}"
+                body:"*"
+            };
+        }
+
+    // Authorize a user by login
+    rpc LoginUser (LoginRequest) returns (LoginResponse){
+        option (google.api.http)={
+            post: "/v1/account/login"
+            body:"*"
+        };
+        option (grpc.gateway.protoc_gen_swagger.options.openapiv2_operation) = {
+            security: { } 
+        };
+    }
+
+    // Read User with a unique identifier
+    rpc ReadUserBy (readUserByRequest) returns (readUserByResponse){
+        option (google.api.http)={
+            post: "/v1/account/users/{token}"
             body:"*"
         };
     }

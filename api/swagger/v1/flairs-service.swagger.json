@@ -4,7 +4,7 @@
     "title": "Flairs service",
     "version": "1.0",
     "contact": {
-      "name": "falirs mobile banking system",
+      "name": "flairs mobile banking system",
       "url": "http://www.alphaplus.finance/",
       "email": "dammydarmy@gmail.com"
     }
@@ -21,8 +21,143 @@
     "application/json"
   ],
   "paths": {
-    "/v1/account/user": {
+    "/v1/account/login": {
       "post": {
+        "summary": "Authorize a user by login",
+        "operationId": "FlairsService_LoginUser",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1LoginResponse"
+            }
+          },
+          "404": {
+            "description": "Returned when the resource does not exist.",
+            "schema": {
+              "type": "string",
+              "format": "string"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/runtimeError"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v1LoginRequest"
+            }
+          }
+        ],
+        "tags": [
+          "FlairsService"
+        ],
+        "security": []
+      }
+    },
+    "/v1/account/reset_password/{token}": {
+      "post": {
+        "summary": "Reset user password",
+        "operationId": "FlairsService_ResetUserPassword",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1customResponse"
+            }
+          },
+          "404": {
+            "description": "Returned when the resource does not exist.",
+            "schema": {
+              "type": "string",
+              "format": "string"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/runtimeError"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "token",
+            "description": "jwt token for authentication",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v1resetPasswordRequest"
+            }
+          }
+        ],
+        "tags": [
+          "FlairsService"
+        ]
+      }
+    },
+    "/v1/account/set_password/{token}": {
+      "post": {
+        "summary": "Set user password",
+        "operationId": "FlairsService_SetUserPassword",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1customResponse"
+            }
+          },
+          "404": {
+            "description": "Returned when the resource does not exist.",
+            "schema": {
+              "type": "string",
+              "format": "string"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/runtimeError"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "token",
+            "description": "jwt token for authentication",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v1setPasswordRequest"
+            }
+          }
+        ],
+        "tags": [
+          "FlairsService"
+        ]
+      }
+    },
+    "/v1/account/user/{email}": {
+      "get": {
         "summary": "Create a new user",
         "operationId": "FlairsService_AddNewUser",
         "responses": {
@@ -48,17 +183,130 @@
         },
         "parameters": [
           {
+            "name": "email",
+            "description": "Email of user to be added",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "api",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "ref",
+            "description": "Referral code if available.",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "FlairsService"
+        ],
+        "security": []
+      }
+    },
+    "/v1/account/users/{token}": {
+      "post": {
+        "summary": "Read User with a unique identifier",
+        "operationId": "FlairsService_ReadUserBy",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1readUserByResponse"
+            }
+          },
+          "404": {
+            "description": "Returned when the resource does not exist.",
+            "schema": {
+              "type": "string",
+              "format": "string"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/runtimeError"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "token",
+            "description": "jwt token for authentication",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
             "name": "body",
             "in": "body",
             "required": true,
             "schema": {
-              "$ref": "#/definitions/v1addNewUserRequest"
+              "$ref": "#/definitions/v1readUserByRequest"
             }
           }
         ],
         "tags": [
           "FlairsService"
         ]
+      }
+    },
+    "/v1/account/verify_email/{email}/{token}": {
+      "get": {
+        "summary": "Verify a new email address",
+        "operationId": "FlairsService_ValidateUserEmail",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1customResponse"
+            }
+          },
+          "404": {
+            "description": "Returned when the resource does not exist.",
+            "schema": {
+              "type": "string",
+              "format": "string"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/runtimeError"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "email",
+            "description": "Email of user to be validated",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "token",
+            "description": "Token for validation",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "api",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "FlairsService"
+        ],
+        "security": []
       }
     }
   },
@@ -77,6 +325,15 @@
         }
       },
       "description": "`Any` contains an arbitrary serialized protocol buffer message along with a\nURL that describes the type of the serialized message.\n\nProtobuf library provides support to pack/unpack Any values in the form\nof utility functions or additional generated methods of the Any type.\n\nExample 1: Pack and unpack a message in C++.\n\n    Foo foo = ...;\n    Any any;\n    any.PackFrom(foo);\n    ...\n    if (any.UnpackTo(\u0026foo)) {\n      ...\n    }\n\nExample 2: Pack and unpack a message in Java.\n\n    Foo foo = ...;\n    Any any = Any.pack(foo);\n    ...\n    if (any.is(Foo.class)) {\n      foo = any.unpack(Foo.class);\n    }\n\n Example 3: Pack and unpack a message in Python.\n\n    foo = Foo(...)\n    any = Any()\n    any.Pack(foo)\n    ...\n    if any.Is(Foo.DESCRIPTOR):\n      any.Unpack(foo)\n      ...\n\n Example 4: Pack and unpack a message in Go\n\n     foo := \u0026pb.Foo{...}\n     any, err := ptypes.MarshalAny(foo)\n     ...\n     foo := \u0026pb.Foo{}\n     if err := ptypes.UnmarshalAny(any, foo); err != nil {\n       ...\n     }\n\nThe pack methods provided by protobuf library will by default use\n'type.googleapis.com/full.type.name' as the type URL and the unpack\nmethods only use the fully qualified type name after the last '/'\nin the type URL, for example \"foo.bar.com/x/y.z\" will yield type\nname \"y.z\".\n\n\nJSON\n====\nThe JSON representation of an `Any` value uses the regular\nrepresentation of the deserialized, embedded message, with an\nadditional field `@type` which contains the type URL. Example:\n\n    package google.profile;\n    message Person {\n      string first_name = 1;\n      string last_name = 2;\n    }\n\n    {\n      \"@type\": \"type.googleapis.com/google.profile.Person\",\n      \"firstName\": \u003cstring\u003e,\n      \"lastName\": \u003cstring\u003e\n    }\n\nIf the embedded message type is well-known and has a custom JSON\nrepresentation, that representation will be embedded adding a field\n`value` which holds the custom JSON in addition to the `@type`\nfield. Example (for message [google.protobuf.Duration][]):\n\n    {\n      \"@type\": \"type.googleapis.com/google.protobuf.Duration\",\n      \"value\": \"1.212s\"\n    }"
+    },
+    "readUserByRequestuser_identifier": {
+      "type": "string",
+      "enum": [
+        "EMAIL",
+        "ID",
+        "REFCODE"
+      ],
+      "default": "EMAIL"
     },
     "runtimeError": {
       "type": "object",
@@ -99,7 +356,7 @@
         }
       }
     },
-    "v1addNewUserRequest": {
+    "v1LoginRequest": {
       "type": "object",
       "properties": {
         "api": {
@@ -107,9 +364,132 @@
         },
         "email": {
           "type": "string",
-          "title": "Email of user to be added"
+          "title": "Unique email address of the user entity"
+        },
+        "password": {
+          "type": "string",
+          "title": "password of the user entity"
         }
       }
+    },
+    "v1LoginResponse": {
+      "type": "object",
+      "properties": {
+        "api": {
+          "type": "string"
+        },
+        "token": {
+          "type": "string",
+          "title": "jwt token for authentication"
+        },
+        "user": {
+          "$ref": "#/definitions/v1Profile",
+          "title": "User entity read br request"
+        }
+      }
+    },
+    "v1Profile": {
+      "type": "object",
+      "properties": {
+        "ID": {
+          "type": "string"
+        },
+        "firstName": {
+          "type": "string"
+        },
+        "lastName": {
+          "type": "string"
+        },
+        "DOB": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "gender": {
+          "type": "string"
+        },
+        "address": {
+          "type": "string"
+        },
+        "street": {
+          "type": "string"
+        },
+        "city": {
+          "type": "string"
+        },
+        "postalCode": {
+          "type": "string"
+        },
+        "state": {
+          "type": "string"
+        },
+        "country": {
+          "type": "string"
+        },
+        "countryID": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "photo": {
+          "type": "string"
+        },
+        "passport": {
+          "type": "string"
+        },
+        "IDCard": {
+          "type": "string"
+        },
+        "referrer": {
+          "type": "string"
+        },
+        "refCode": {
+          "type": "string"
+        },
+        "howDidYouHearAboutUs": {
+          "type": "string"
+        },
+        "userName": {
+          "type": "string"
+        },
+        "email": {
+          "type": "string"
+        },
+        "emailVerifiedAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "phoneNumber": {
+          "type": "string"
+        },
+        "phoneVerifiedAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "ACCOUNT_TYPE": {
+          "$ref": "#/definitions/v1ProfileaccountType"
+        },
+        "lastCardRequested": {
+          "type": "string"
+        },
+        "isProfileCompleted": {
+          "type": "boolean"
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time"
+        }
+      }
+    },
+    "v1ProfileaccountType": {
+      "type": "string",
+      "enum": [
+        "PERSONAL",
+        "BUSINESS"
+      ],
+      "default": "PERSONAL"
     },
     "v1addNewUserResponse": {
       "type": "object",
@@ -122,6 +502,98 @@
           "title": "ID of the created user"
         }
       }
+    },
+    "v1customResponse": {
+      "type": "object",
+      "properties": {
+        "api": {
+          "type": "string"
+        },
+        "request": {
+          "type": "string",
+          "title": "Request title for message"
+        },
+        "message": {
+          "type": "string",
+          "title": "Custom message in response"
+        }
+      }
+    },
+    "v1readUserByRequest": {
+      "type": "object",
+      "properties": {
+        "api": {
+          "type": "string"
+        },
+        "token": {
+          "type": "string",
+          "title": "jwt token for authentication"
+        },
+        "identifier": {
+          "$ref": "#/definitions/readUserByRequestuser_identifier",
+          "title": "Unique identifier  of user to be read"
+        }
+      }
+    },
+    "v1readUserByResponse": {
+      "type": "object",
+      "properties": {
+        "api": {
+          "type": "string"
+        },
+        "user": {
+          "$ref": "#/definitions/v1Profile",
+          "title": "User entity read br request"
+        }
+      }
+    },
+    "v1resetPasswordRequest": {
+      "type": "object",
+      "properties": {
+        "api": {
+          "type": "string"
+        },
+        "token": {
+          "type": "string",
+          "title": "jwt token for authentication"
+        },
+        "email": {
+          "type": "string",
+          "title": "Email of user to set password"
+        },
+        "password": {
+          "type": "string",
+          "title": "Password to be added"
+        }
+      }
+    },
+    "v1setPasswordRequest": {
+      "type": "object",
+      "properties": {
+        "api": {
+          "type": "string"
+        },
+        "token": {
+          "type": "string",
+          "title": "jwt token for authentication"
+        },
+        "email": {
+          "type": "string",
+          "title": "Email of user to set password"
+        },
+        "password": {
+          "type": "string",
+          "title": "Password to be added"
+        }
+      }
+    }
+  },
+  "securityDefinitions": {
+    "flairs_token": {
+      "type": "apiKey",
+      "description": "Authentication token, passed into header",
+      "name": "Authorization",
+      "in": "header"
     }
   }
 }
