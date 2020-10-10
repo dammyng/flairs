@@ -109,7 +109,7 @@
         ]
       }
     },
-    "/v1/account/set_password/{token}": {
+    "/v1/account/set_password": {
       "post": {
         "summary": "Set user password",
         "operationId": "FlairsService_SetUserPassword",
@@ -135,13 +135,6 @@
           }
         },
         "parameters": [
-          {
-            "name": "token",
-            "description": "jwt token for authentication",
-            "in": "path",
-            "required": true,
-            "type": "string"
-          },
           {
             "name": "body",
             "in": "body",
@@ -572,10 +565,6 @@
       "properties": {
         "api": {
           "type": "string"
-        },
-        "token": {
-          "type": "string",
-          "title": "jwt token for authentication"
         },
         "email": {
           "type": "string",

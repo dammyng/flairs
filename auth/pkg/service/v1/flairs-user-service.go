@@ -11,6 +11,7 @@ import (
 	"github.com/jinzhu/gorm"
 	uuid "github.com/satori/go.uuid"
 	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/metadata"
 	"google.golang.org/grpc/status"
 )
 
@@ -78,7 +79,8 @@ func (f *flairsServiceServer) ResetUserPassword(ctx context.Context, req *v1.Res
 }
 
 func (f *flairsServiceServer) SetUserPassword(ctx context.Context, req *v1.SetPasswordRequest) (*v1.CustomResponse, error) {
-	//md, ok := metadata.FromIncomingContext(ctx)
+	md, _ := metadata.FromIncomingContext(ctx)
+	log.Println(md.Get("Authorization"))
 	return nil, nil
 }
 

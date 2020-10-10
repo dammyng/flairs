@@ -143,9 +143,7 @@ message validateEmailRequest{
 
 
 message setPasswordRequest{
-    string api = 1;
-        // jwt token for authentication
-        string token = 2;    
+    string api = 1; 
     // Email of user to set password
     string email = 3;
     // Password to be added
@@ -240,18 +238,18 @@ service FlairsService{
     // Set user password
     rpc SetUserPassword (setPasswordRequest) returns (customResponse){
         option (google.api.http)={
-            post: "/v1/account/set_password/{token}"
+            post: "/v1/account/set_password"
             body:"*"
         };
     }
 
-        // Reset user password
-        rpc ResetUserPassword (resetPasswordRequest) returns (customResponse){
-            option (google.api.http)={
-                post: "/v1/account/reset_password/{token}"
-                body:"*"
-            };
-        }
+    // Reset user password
+    rpc ResetUserPassword (resetPasswordRequest) returns (customResponse){
+        option (google.api.http)={
+            post: "/v1/account/reset_password/{token}"
+            body:"*"
+        };
+    }
 
     // Authorize a user by login
     rpc LoginUser (LoginRequest) returns (LoginResponse){
