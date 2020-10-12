@@ -15,6 +15,7 @@ require (
 	github.com/jinzhu/gorm v1.9.16
 	github.com/joho/godotenv v1.3.0
 	github.com/mitchellh/mapstructure v1.3.3
+	github.com/rafaeljusto/redigomock v2.4.0+incompatible
 	github.com/satori/go.uuid v1.2.0
 	github.com/streadway/amqp v1.0.0
 	github.com/urfave/negroni v1.0.0
@@ -23,5 +24,6 @@ require (
 	google.golang.org/genproto v0.0.0-20200526211855-cb27e3aa2013
 	google.golang.org/grpc v1.32.0
 	google.golang.org/protobuf v1.25.0
+	gopkg.in/DATA-DOG/go-sqlmock.v1 v1.3.0
 	shared v0.0.0-00010101000000-000000000000
 )

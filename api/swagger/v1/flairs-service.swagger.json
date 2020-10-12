@@ -525,6 +525,9 @@
         "identifier": {
           "$ref": "#/definitions/readUserByRequestuser_identifier",
           "title": "Unique identifier  of user to be read"
+        },
+        "iValue": {
+          "type": "string"
         }
       }
     },

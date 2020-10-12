@@ -119,3 +119,4 @@ func (f *flairsServiceServer) ValidateUserEmail(ctx context.Context, req *v1.Val
 		Request: "verify_email",
 	}, nil
 }
+
