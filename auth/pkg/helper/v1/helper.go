@@ -7,7 +7,7 @@ import (
 	"log"
 	"math/rand"
 	"time"
-
+"regexp"
 	"github.com/fatih/structs"
 	"github.com/mitchellh/mapstructure"
 	"golang.org/x/crypto/bcrypt"
@@ -69,4 +69,15 @@ func GenerateToken(word string) string {
 	hasher := md5.New()
 	hasher.Write(hash)
 	return hex.EncodeToString(hasher.Sum(nil))
+}
+
+
+var emailRegex = regexp.MustCompile("^[a-zA-Z0-9.!#$%&'*+\\/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$")
+
+// IsEmailValid checks if the email provided passes the required structure and length.
+func IsEmailValid(e string) bool {
+	if len(e) < 3 && len(e) > 254 {
+		return false
+	}
+	return emailRegex.MatchString(e)
 }

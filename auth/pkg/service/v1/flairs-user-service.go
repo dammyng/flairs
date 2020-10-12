@@ -17,6 +17,10 @@ import (
 
 // AddNewUser initializes a new user with email address
 func (f *flairsServiceServer) AddNewUser(ctx context.Context, req *v1.AddNewUserRequest) (*v1.AddNewUserResponse, error) {
+	if !v1helper.IsEmailValid(req.Email){
+		return nil, status.Error(codes.InvalidArgument, "Invalid entry")
+	}
+	
 	user := v1helper.DecodeToSQLUser(req)
 
 	// Check if user Already exist

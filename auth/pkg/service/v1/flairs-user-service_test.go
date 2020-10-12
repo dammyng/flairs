@@ -13,10 +13,10 @@ import (
 	"google.golang.org/grpc/status"
 
 	v1internals "auth/internals/v1"
+	v1 "auth/pkg/api/v1"
 	redisconn "auth/redis"
 
 	"auth/libs/setup"
-	"auth/pkg/api/v1"
 
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/jinzhu/gorm"
@@ -56,13 +56,13 @@ func TestAddUser_ok(t *testing.T) {
 
 	req := &v1.AddNewUserRequest{
 		Api:   "v1",
-		Email: "el.s",
+		Email: "someone@flairs.com",
 		Ref:   "dddddd",
 	}
 
 	got, err := s.AddNewUser(ctx, req)
 
-	if err != nil{
+	if err != nil {
 		t.Errorf("flairServiceServer.AddNewUser() error = %v, wantErr %v", err, "f")
 		return
 	}
@@ -83,28 +83,27 @@ func TestAddUser_duplicate_email(t *testing.T) {
 
 	req := &v1.AddNewUserRequest{
 		Api:   "v1",
-		Email: "el.s",
+		Email: "someone@flairs.com",
 		Ref:   "dddddd",
 	}
 
 	_, err := s.AddNewUser(ctx, req)
 	_, duplicateErr := s.AddNewUser(ctx, req)
 
-	if err != nil{
+	if err != nil {
 		t.Errorf("flairServiceServer.AddNewUser() error = %v, wantErr %v", err, "f")
 		return
 	}
 
-	if duplicateErr == nil{
+	if duplicateErr == nil {
 		t.Errorf("flairServiceServer.AddNewUser() should have returned a duplicate error  = %v, wantErr %v", err, "f")
 		return
 	}
 
-	if (duplicateErr != nil) && duplicateErr.Error() != status.Error(codes.AlreadyExists, "A Flairs account with this email already exists. Please try logging in.").Error(){
+	if (duplicateErr != nil) && duplicateErr.Error() != status.Error(codes.AlreadyExists, "A Flairs account with this email already exists. Please try logging in.").Error() {
 		t.Errorf("flairServiceServer.AddNewUser() should return a duplicate error but got = %v,", duplicateErr.Error())
 	}
 }
-
 
 func TestAddUser_invalid_entry(t *testing.T) {
 	clearUsersTable()
@@ -113,21 +112,135 @@ func TestAddUser_invalid_entry(t *testing.T) {
 	s := NewFlairsServiceServer(sqlLayer, testRedis)
 
 	req := &v1.AddNewUserRequest{
-		Api:   "v1",
-		Ref:   "dddddd",
+		Api: "v1",
+		Ref: "dddddd",
 	}
 
 	_, err := s.AddNewUser(ctx, req)
 
-	if err == nil{
+	if err == nil {
 		t.Errorf("flairServiceServer.AddNewUser() should have returned an internal server error  = %v", err)
 		return
 	}
 
-	if (err != nil) && err.Error() != status.Error(codes.Internal, "failed to insert into Users-> "+err.Error()).Error(){
+	if (err != nil) && err.Error() != status.Error(codes.InvalidArgument, "Invalid entry").Error() {
 		t.Errorf("flairServiceServer.AddNewUser() Wrong error! should return a internal error but got = %v,", err.Error())
 	}
 }
+
+func TestAddUser_ok_no_ref(t *testing.T) {
+	clearUsersTable()
+	ctx := context.Background()
+	sqlLayer := v1internals.NewMysqlLayer(testDb)
+	s := NewFlairsServiceServer(sqlLayer, testRedis)
+
+	req := &v1.AddNewUserRequest{
+		Api:   "v1",
+		Email: "someone@flairs.com",
+	}
+
+	got, err := s.AddNewUser(ctx, req)
+
+	if err != nil {
+		t.Errorf("flairServiceServer.AddNewUser() error = %v, wantErr %v", err, "f")
+		return
+	}
+
+	var u v1internals.User
+	testDb.Where("email = ?", req.Email).Last(&u)
+
+	if err == nil && !reflect.DeepEqual(got.ID, u.ID) {
+		t.Errorf("flairServiceServer.AddNewUser() = %v, want %v", got.ID, u.ID)
+	}
+}
+
+func TestVerifyEmail_ok(t *testing.T) {
+
+	clearUsersTable()
+	ctx := context.Background()
+	sqlLayer := v1internals.NewMysqlLayer(testDb)
+	s := NewFlairsServiceServer(sqlLayer, testRedis)
+
+	uReq := &v1.AddNewUserRequest{
+		Api:   "v1",
+		Email: "someone@flairs.com",
+	}
+
+	got, err := s.AddNewUser(ctx, uReq)
+
+	if err != nil {
+		t.Errorf("flairServiceServer.ValidateUserEmail() failed User account could not be created failed with = %v", err.Error())
+	}
+
+	token, err := redis.String(testRedis.Do("HGET", "email:verification", uReq.Email))
+	if err != nil {
+		t.Errorf("flairServiceServer.ValidateUserEmail() Redis token was not saved when user got created with = %v", err.Error())
+	}
+	req := &v1.ValidateEmailRequest{
+		Api:   "v1",
+		Token: token,
+		Email: uReq.Email,
+	}
+
+	vGot, err := s.ValidateUserEmail(ctx, req)
+
+	if err != nil {
+		t.Errorf("flairServiceServer.ValidateUserEmail() failed with = %v", err.Error())
+	}
+
+	want := &v1.CustomResponse{
+		Api:     "v1",
+		Message: "Successfully verified email",
+		Request: "verify_email",
+	}
+
+	if err == nil && !reflect.DeepEqual(vGot, want) {
+		t.Errorf("flairServiceServer.ValidateUserEmail() returned = %v, want %v", got, want)
+	}
+
+}
+
+
+func TestVerifyEmail_wrongtoken(t *testing.T) {
+
+	clearUsersTable()
+	ctx := context.Background()
+	sqlLayer := v1internals.NewMysqlLayer(testDb)
+	s := NewFlairsServiceServer(sqlLayer, testRedis)
+
+	uReq := &v1.AddNewUserRequest{
+		Api:   "v1",
+		Email: "someone@flairs.com",
+	}
+
+	_, err := s.AddNewUser(ctx, uReq)
+
+	if err != nil {
+		t.Errorf("flairServiceServer.ValidateUserEmail() failed User account could not be created failed with = %v", err.Error())
+	}
+
+	token, err := redis.String(testRedis.Do("HGET", "email:verification", uReq.Email))
+	if err != nil {
+		t.Errorf("flairServiceServer.ValidateUserEmail() Redis token was not saved when user got created with = %v", err.Error())
+	}
+	req := &v1.ValidateEmailRequest{
+		Api:   "v1",
+		Token: token+"xxx",
+		Email: uReq.Email,
+	}
+
+	vGot, err := s.ValidateUserEmail(ctx, req)
+
+	if err == nil {
+		t.Errorf("flairServiceServer.ValidateUserEmail( wrong token) is expected to return an error but got = %v", vGot.Message)
+	}
+
+	if err != nil && !reflect.DeepEqual(err.Error(), status.Error(codes.InvalidArgument, "Wrong token string").Error()) {
+		t.Errorf("flairServiceServer.ValidateUserEmail(wrong token) expected a wrong token error but returned = %v, want %v", err.Error(),status.Error(codes.InvalidArgument, "Wrong token string").Error() )
+	}
+
+}
+
 
 func clearUsersTable() {
 	testDb.Exec(setup.ClearUserTable)
