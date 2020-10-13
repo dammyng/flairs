@@ -7,6 +7,8 @@ import (
 	"log"
 	"time"
 
+	"golang.org/x/crypto/bcrypt"
+
 	"github.com/gomodule/redigo/redis"
 	"github.com/jinzhu/gorm"
 	uuid "github.com/satori/go.uuid"
@@ -17,10 +19,10 @@ import (
 
 // AddNewUser initializes a new user with email address
 func (f *flairsServiceServer) AddNewUser(ctx context.Context, req *v1.AddNewUserRequest) (*v1.AddNewUserResponse, error) {
-	if !v1helper.IsEmailValid(req.Email){
+	if !v1helper.IsEmailValid(req.Email) {
 		return nil, status.Error(codes.InvalidArgument, "Invalid entry")
 	}
-	
+
 	user := v1helper.DecodeToSQLUser(req)
 
 	// Check if user Already exist
@@ -83,9 +85,52 @@ func (f *flairsServiceServer) ResetUserPassword(ctx context.Context, req *v1.Res
 }
 
 func (f *flairsServiceServer) SetUserPassword(ctx context.Context, req *v1.SetPasswordRequest) (*v1.CustomResponse, error) {
-	md, _ := metadata.FromIncomingContext(ctx)
-	log.Println(md.Get("Authorization"))
-	return nil, nil
+	u := v1helper.DecodeToSQLUser(req)
+
+	md, ok := metadata.FromIncomingContext(ctx)
+	log.Println(ok)
+	if !ok {
+		return nil, status.Errorf(codes.DataLoss, "failed to get metadata")
+	}
+	authorization := md.Get("Authorization")[0]
+	if authorization == "" {
+		return nil, status.Error(codes.Unauthenticated, "Invalid authorization token ")
+	}
+
+	token, err := redis.String(f.RedisConn.Do("HGET", "password:reset", req.Email))
+	if err != nil {
+		return nil, status.Error(codes.Internal, "Invalid token string "+err.Error())
+	}
+	if token == "" {
+		return nil, status.Error(codes.InvalidArgument, "Invalid token string "+err.Error())
+	}
+
+	if match := token == authorization; match {
+		user, err := f.Db.FindUser(u)
+		u.ID = user.ID
+		if err != nil {
+			return nil, status.Error(codes.NotFound, "Error fetching user record "+err.Error())
+		}
+
+		hashedPass, err := bcrypt.GenerateFromPassword([]byte(req.Password), bcrypt.DefaultCost)
+		if err != nil {
+			return nil, status.Error(codes.Internal, "Service failed"+err.Error())
+		}
+		err = f.Db.UpdateUser(u, &v1.User{Password: hashedPass})
+		if err != nil {
+			return nil, status.Error(codes.Internal, "Service failed"+err.Error())
+		}
+		redis.Int(f.RedisConn.Do("HDEL", "password:reset", req.Email))
+		res := &v1.CustomResponse{
+			Api:     "v1",
+			Message: "Successfully Add Password",
+			Request: "add_password",
+		}
+
+		return res, nil
+	}
+	return nil, status.Error(codes.InvalidArgument, "Wrong token string")
+
 }
 
 func (f *flairsServiceServer) ValidateUserEmail(ctx context.Context, req *v1.ValidateEmailRequest) (*v1.CustomResponse, error) {
@@ -108,19 +153,18 @@ func (f *flairsServiceServer) ValidateUserEmail(ctx context.Context, req *v1.Val
 		}
 
 		err = f.Db.UpdateUser(u, &v1.User{EmailVerifiedAt: time.Now().Format(time.RFC3339)})
-		
+
 		if err != nil {
 			return nil, status.Error(codes.Internal, "Invalid token string "+err.Error())
 		}
-		redis.Int(f.RedisConn.Do("HDEL", "password:reset", req.Email))
+		redis.Int(f.RedisConn.Do("HDEL", "email:verification", req.Email))
 
 	} else {
 		return nil, status.Error(codes.InvalidArgument, "Wrong token string")
 	}
 	return &v1.CustomResponse{
-		Api: "v1",
+		Api:     "v1",
 		Message: "Successfully verified email",
 		Request: "verify_email",
 	}, nil
 }
-

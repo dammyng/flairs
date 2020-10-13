@@ -1,6 +1,8 @@
 package v1
 
 import (
+	"google.golang.org/grpc/metadata"
+	"time"
 	"context"
 	"fmt"
 	"log"
@@ -241,6 +243,62 @@ func TestVerifyEmail_wrongtoken(t *testing.T) {
 
 }
 
+func TestAddPassword_ok(t *testing.T) {
+	clearUsersTable()
+	ctx := context.Background()
+
+	sqlLayer := v1internals.NewMysqlLayer(testDb)
+	s := NewFlairsServiceServer(sqlLayer, testRedis)
+
+	uReq := &v1.AddNewUserRequest{
+		Api:   "v1",
+		Email: "someone@flairs.com",
+	}
+
+	_, err := s.AddNewUser(ctx, uReq)
+	if err != nil {
+		t.Errorf("flairServiceServer.AddPassword() failed User account could not be created failed with = %v", err.Error())
+	}
+
+	var u v1internals.User
+	testDb.Where("email = ?", uReq.Email).Last(&u)
+
+	err = sqlLayer.UpdateUser(&v1.User{ID:u.ID, Email: u.Email}, &v1.User{EmailVerifiedAt: time.Now().Format(time.RFC3339)})
+		
+	if err != nil {
+		t.Errorf("flairServiceServer.Addpassword() failed - Could not verify email failed with = %v", err.Error())
+	}
+
+	token, err := redis.String(testRedis.Do("HGET", "password:reset", uReq.Email))
+	if err != nil {
+		t.Errorf("flairServiceServer.AddPassword() Redis token was not saved when user got created with = %v", err.Error())
+	}
+	req := &v1.SetPasswordRequest{
+		Api:   "v1",
+		Email:uReq.Email,
+		Password:"Password",
+	}
+
+	md:= metadata.Pairs("authorization", token)
+	ctx = metadata.NewIncomingContext(ctx, md)
+	
+	vGot, err := s.SetUserPassword(ctx, req)
+
+	if err != nil {
+		t.Errorf("flairServiceServer.AddPassword(ok) failed with error = %v", err)
+	}
+
+	want := &v1.CustomResponse{
+		Api:     "v1",
+		Message: "Successfully Add Password",
+		Request: "add_password",
+	}
+
+	if err == nil && !reflect.DeepEqual(vGot, want) {
+		t.Errorf("flairServiceServer.AddPassword() returned = %v, want %v", vGot, want)
+	}
+
+}
 
 func clearUsersTable() {
 	testDb.Exec(setup.ClearUserTable)
