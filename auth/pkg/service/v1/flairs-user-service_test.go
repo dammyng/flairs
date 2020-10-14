@@ -354,14 +354,14 @@ func TestLogin_ok(t *testing.T) {
 	if claims.Valid() != nil {
 		t.Errorf("flairServiceServer.Login() returned a wrong token string id= %v", vGot.Token)
 	}
-	if claims.UserId != vGot.User.ID {
-		t.Errorf("flairServiceServer.Login() returned an invalid user with id= %v, want %v", claims.UserId, vGot.User.ID)
+	if claims.UserID != vGot.User.ID {
+		t.Errorf("flairServiceServer.Login() returned an invalid user with id= %v, want %v", claims.UserID, vGot.User.ID)
 	}
 }
 
 func decodeJwt(token string, claims *Claims) error {
 	_, err := jwt.ParseWithClaims(token, claims, func(token *jwt.Token) (interface{}, error) {
-		return []byte("secrek_kex"), nil
+		return []byte("secrek_key"), nil
 	})
 	return err
 }

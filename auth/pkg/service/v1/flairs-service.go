@@ -22,9 +22,9 @@ type flairsServiceServer struct {
 	RedisConn    redis.Conn
 }
 
-
+// Claims jwt custom authentication claims 
 type Claims struct {
-	UserId string `json:"user_id"`
+	UserID string `json:"user_id"`
 	jwt.StandardClaims
 }
 

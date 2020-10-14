@@ -9,6 +9,7 @@ import (
 
 	"golang.org/x/crypto/bcrypt"
 
+	"github.com/dgrijalva/jwt-go"
 	"github.com/gomodule/redigo/redis"
 	"github.com/jinzhu/gorm"
 	uuid "github.com/satori/go.uuid"
@@ -72,7 +73,50 @@ func (f *flairsServiceServer) AddNewUser(ctx context.Context, req *v1.AddNewUser
 }
 
 func (f *flairsServiceServer) LoginUser(ctx context.Context, req *v1.LoginRequest) (*v1.LoginResponse, error) {
-	return nil, status.Error(codes.Unauthenticated, "Invalid username or password")
+
+	// Check if user Already exist
+	user, err := f.Db.FindUser(&v1.User{Email: req.Email})
+	if user == nil {
+		return nil, status.Error(codes.NotFound, "A Flairs account with this email does not exist exists.")
+	}
+
+	if user == nil && err != nil {
+		return nil, status.Error(codes.NotFound, "A Flairs account with this email does not exist exists.")
+	}
+	emailVerifiedAt := user.EmailVerifiedAt
+
+	if emailVerifiedAt.IsZero() {
+		return nil, status.Error(codes.Unauthenticated, "Unverified email address")
+	}
+
+	err = bcrypt.CompareHashAndPassword(user.Password, []byte(req.Password))
+	if err != nil {
+		return nil, status.Error(codes.Internal, "Unverified email address")
+	}
+
+	expirationTime := time.Now().Add(24 * 60 * time.Minute)
+
+	claims := &Claims{
+		UserID: user.ID,
+		StandardClaims: jwt.StandardClaims{
+			ExpiresAt: expirationTime.Unix(),
+		},
+	}
+
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
+	tokenString, err := token.SignedString([]byte("secrek_key"))
+	if err != nil {
+		return nil, status.Error(codes.Internal, "Aist exists.")
+	}
+
+	res := &v1.LoginResponse{
+		Token: tokenString,
+		User:  &v1.Profile{
+			ID:user.ID,
+		},
+	}
+
+	return res, nil
 }
 
 func (f *flairsServiceServer) ReadUserBy(ctx context.Context, req *v1.ReadUserByRequest) (*v1.ReadUserByResponse, error) {
@@ -135,7 +179,6 @@ func (f *flairsServiceServer) SetUserPassword(ctx context.Context, req *v1.SetPa
 func (f *flairsServiceServer) UpdateUserProfile(ctx context.Context, req *v1.UpdateUserRequest) (*v1.UpdateUserResponse, error) {
 	return nil, nil
 }
-
 
 func (f *flairsServiceServer) ValidateUserEmail(ctx context.Context, req *v1.ValidateEmailRequest) (*v1.CustomResponse, error) {
 
