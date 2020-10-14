@@ -359,6 +359,61 @@ func TestLogin_ok(t *testing.T) {
 	}
 }
 
+func TestUpdateUser_ok(t *testing.T) {
+	clearUsersTable()
+	ctx := context.Background()
+
+	sqlLayer := v1internals.NewMysqlLayer(testDb)
+	s := NewFlairsServiceServer(sqlLayer, testRedis)
+
+	uReq := &v1.AddNewUserRequest{
+		Api:   "v1",
+		Email: "someone@flairs.com",
+	}
+
+	_, err := s.AddNewUser(ctx, uReq)
+	if err != nil {
+		t.Errorf("flairServiceServer.UpdateUser() failed User account could not be created failed with = %v", err.Error())
+	}
+
+	var u v1internals.User
+	testDb.Where("email = ?", uReq.Email).Last(&u)
+	hashedPass, err := bcrypt.GenerateFromPassword([]byte("password"), bcrypt.DefaultCost)
+	err = sqlLayer.UpdateUser(&v1.User{ID: u.ID, Email: u.Email}, &v1.User{EmailVerifiedAt: time.Now().Format(time.RFC3339), Password: hashedPass})
+
+	if err != nil {
+		t.Errorf("flairServiceServer.UpdateUser() failed - Could not verify email && password failed with = %v", err.Error())
+	}
+	req := &v1.LoginRequest{
+		Api:      "v1",
+		Email:    uReq.Email,
+		Password: "password",
+	}
+
+	vGot, err := s.LoginUser(ctx, req)
+
+	if err != nil {
+		t.Errorf("flairServiceServer.UpdateUser(ok) Users could not login = %v", err)
+		return
+	}
+	
+	uReqt := &v1.UpdateUserRequest{
+
+	}
+
+	res, err := s.UpdateUserProfile(ctx, uReqt)
+
+	if err != nil {
+		t.Errorf("flairServiceServer.UpdateUser(ok) failed with = %v", err)
+		return
+	}
+
+	var uu v1internals.User
+	testDb.Where("email = ?", uReq.Email).Last(&uu)
+
+	
+}
+
 func decodeJwt(token string, claims *Claims) error {
 	_, err := jwt.ParseWithClaims(token, claims, func(token *jwt.Token) (interface{}, error) {
 		return []byte("secrek_key"), nil
