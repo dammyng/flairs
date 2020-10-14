@@ -1,15 +1,18 @@
 package v1
 
 import (
-	"google.golang.org/grpc/metadata"
-	"time"
 	"context"
 	"fmt"
 	"log"
 	"os"
 	"reflect"
 	"testing"
+	"time"
 
+	"golang.org/x/crypto/bcrypt"
+	"google.golang.org/grpc/metadata"
+
+	"github.com/dgrijalva/jwt-go"
 	"github.com/gomodule/redigo/redis"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
@@ -202,7 +205,6 @@ func TestVerifyEmail_ok(t *testing.T) {
 
 }
 
-
 func TestVerifyEmail_wrongtoken(t *testing.T) {
 
 	clearUsersTable()
@@ -227,7 +229,7 @@ func TestVerifyEmail_wrongtoken(t *testing.T) {
 	}
 	req := &v1.ValidateEmailRequest{
 		Api:   "v1",
-		Token: token+"xxx",
+		Token: token + "xxx",
 		Email: uReq.Email,
 	}
 
@@ -238,7 +240,7 @@ func TestVerifyEmail_wrongtoken(t *testing.T) {
 	}
 
 	if err != nil && !reflect.DeepEqual(err.Error(), status.Error(codes.InvalidArgument, "Wrong token string").Error()) {
-		t.Errorf("flairServiceServer.ValidateUserEmail(wrong token) expected a wrong token error but returned = %v, want %v", err.Error(),status.Error(codes.InvalidArgument, "Wrong token string").Error() )
+		t.Errorf("flairServiceServer.ValidateUserEmail(wrong token) expected a wrong token error but returned = %v, want %v", err.Error(), status.Error(codes.InvalidArgument, "Wrong token string").Error())
 	}
 
 }
@@ -263,8 +265,8 @@ func TestAddPassword_ok(t *testing.T) {
 	var u v1internals.User
 	testDb.Where("email = ?", uReq.Email).Last(&u)
 
-	err = sqlLayer.UpdateUser(&v1.User{ID:u.ID, Email: u.Email}, &v1.User{EmailVerifiedAt: time.Now().Format(time.RFC3339)})
-		
+	err = sqlLayer.UpdateUser(&v1.User{ID: u.ID, Email: u.Email}, &v1.User{EmailVerifiedAt: time.Now().Format(time.RFC3339)})
+
 	if err != nil {
 		t.Errorf("flairServiceServer.Addpassword() failed - Could not verify email failed with = %v", err.Error())
 	}
@@ -274,14 +276,14 @@ func TestAddPassword_ok(t *testing.T) {
 		t.Errorf("flairServiceServer.AddPassword() Redis token was not saved when user got created with = %v", err.Error())
 	}
 	req := &v1.SetPasswordRequest{
-		Api:   "v1",
-		Email:uReq.Email,
-		Password:"Password",
+		Api:      "v1",
+		Email:    uReq.Email,
+		Password: "Password",
 	}
 
-	md:= metadata.Pairs("authorization", token)
+	md := metadata.Pairs("authorization", token)
 	ctx = metadata.NewIncomingContext(ctx, md)
-	
+
 	vGot, err := s.SetUserPassword(ctx, req)
 
 	if err != nil {
@@ -298,6 +300,70 @@ func TestAddPassword_ok(t *testing.T) {
 		t.Errorf("flairServiceServer.AddPassword() returned = %v, want %v", vGot, want)
 	}
 
+}
+
+func TestLogin_ok(t *testing.T) {
+	clearUsersTable()
+	ctx := context.Background()
+
+	sqlLayer := v1internals.NewMysqlLayer(testDb)
+	s := NewFlairsServiceServer(sqlLayer, testRedis)
+
+	uReq := &v1.AddNewUserRequest{
+		Api:   "v1",
+		Email: "someone@flairs.com",
+	}
+
+	_, err := s.AddNewUser(ctx, uReq)
+	if err != nil {
+		t.Errorf("flairServiceServer.Login() failed User account could not be created failed with = %v", err.Error())
+	}
+
+	var u v1internals.User
+	testDb.Where("email = ?", uReq.Email).Last(&u)
+	hashedPass, err := bcrypt.GenerateFromPassword([]byte("password"), bcrypt.DefaultCost)
+	err = sqlLayer.UpdateUser(&v1.User{ID: u.ID, Email: u.Email}, &v1.User{EmailVerifiedAt: time.Now().Format(time.RFC3339), Password: hashedPass})
+
+	if err != nil {
+		t.Errorf("flairServiceServer.Login() failed - Could not verify email && password failed with = %v", err.Error())
+	}
+
+	req := &v1.LoginRequest{
+		Api:      "v1",
+		Email:    uReq.Email,
+		Password: "password",
+	}
+
+	vGot, err := s.LoginUser(ctx, req)
+
+	if err != nil {
+		t.Errorf("flairServiceServer.Login(ok) failed with error = %v", err)
+		return
+	}
+
+	claims := &Claims{}
+	err = decodeJwt(vGot.Token, claims)
+
+	if err != nil {
+		if err == jwt.ErrSignatureInvalid {
+			t.Errorf("flairServiceServer.Login() returned = an invalid token - could not verufy tokenv %v", vGot.Token)
+			return
+		}
+		t.Errorf("flairServiceServer.Login() returned = an could not decode token %v", err)
+	}
+	if claims.Valid() != nil {
+		t.Errorf("flairServiceServer.Login() returned a wrong token string id= %v", vGot.Token)
+	}
+	if claims.UserId != vGot.User.ID {
+		t.Errorf("flairServiceServer.Login() returned an invalid user with id= %v, want %v", claims.UserId, vGot.User.ID)
+	}
+}
+
+func decodeJwt(token string, claims *Claims) error {
+	_, err := jwt.ParseWithClaims(token, claims, func(token *jwt.Token) (interface{}, error) {
+		return []byte("secrek_kex"), nil
+	})
+	return err
 }
 
 func clearUsersTable() {

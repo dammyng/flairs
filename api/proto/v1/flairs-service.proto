@@ -81,6 +81,35 @@ message User{
     google.protobuf.Timestamp updatedAt = 30;
 }
 
+
+message UpdateBody{
+    string ID =1;
+    string firstName =2;
+    string lastName = 3;
+    string DOB = 4;
+    string gender = 5;
+    string BVN = 6;
+    string address = 7;
+    string street = 8;
+    string city = 9;
+    string postalCode = 10;
+    string state = 11;
+    string country = 12;
+    uint32 countryID = 13;
+    string photo = 900;
+    string passport = 901;
+    string IDCard = 902;
+    string howDidYouHearAboutUs = 16;
+    string userName = 17;
+    bytes pin = 21;
+    string phoneNumber = 22;
+    enum accountType {
+        PERSONAL = 0;
+        BUSINESS = 1;
+    };
+    accountType ACCOUNT_TYPE = 24;
+}
+
 message Profile{
     string ID =1;
     string firstName =2;
@@ -185,6 +214,17 @@ message readUserByResponse{
     Profile user = 2;
 }
 
+message updateUserRequest{
+    // unique id of profile 
+    string  id = 2;
+    // profile object to be updated 
+    UpdateBody profile = 3;
+}
+
+message updateUserResponse{
+    // unique id of profile updated
+    string  id = 2;
+}
 
 message LoginRequest{
     string api = 1;
@@ -270,4 +310,12 @@ service FlairsService{
             body:"*"
         };
     }
+
+        // Update User profile
+        rpc UpdateUserProfile (updateUserRequest) returns (updateUserResponse){
+            option (google.api.http)={
+                put: "/v1/account/user"
+                body:"*"
+            };
+        }
 }

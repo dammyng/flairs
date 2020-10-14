@@ -149,6 +149,46 @@
         ]
       }
     },
+    "/v1/account/user": {
+      "put": {
+        "summary": "Update User profile",
+        "operationId": "FlairsService_UpdateUserProfile",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1updateUserResponse"
+            }
+          },
+          "404": {
+            "description": "Returned when the resource does not exist.",
+            "schema": {
+              "type": "string",
+              "format": "string"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/runtimeError"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v1updateUserRequest"
+            }
+          }
+        ],
+        "tags": [
+          "FlairsService"
+        ]
+      }
+    },
     "/v1/account/user/{email}": {
       "get": {
         "summary": "Create a new user",
@@ -484,6 +524,84 @@
       ],
       "default": "PERSONAL"
     },
+    "v1UpdateBody": {
+      "type": "object",
+      "properties": {
+        "ID": {
+          "type": "string"
+        },
+        "firstName": {
+          "type": "string"
+        },
+        "lastName": {
+          "type": "string"
+        },
+        "DOB": {
+          "type": "string"
+        },
+        "gender": {
+          "type": "string"
+        },
+        "BVN": {
+          "type": "string"
+        },
+        "address": {
+          "type": "string"
+        },
+        "street": {
+          "type": "string"
+        },
+        "city": {
+          "type": "string"
+        },
+        "postalCode": {
+          "type": "string"
+        },
+        "state": {
+          "type": "string"
+        },
+        "country": {
+          "type": "string"
+        },
+        "countryID": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "photo": {
+          "type": "string"
+        },
+        "passport": {
+          "type": "string"
+        },
+        "IDCard": {
+          "type": "string"
+        },
+        "howDidYouHearAboutUs": {
+          "type": "string"
+        },
+        "userName": {
+          "type": "string"
+        },
+        "pin": {
+          "type": "string",
+          "format": "byte"
+        },
+        "phoneNumber": {
+          "type": "string"
+        },
+        "ACCOUNT_TYPE": {
+          "$ref": "#/definitions/v1UpdateBodyaccountType"
+        }
+      }
+    },
+    "v1UpdateBodyaccountType": {
+      "type": "string",
+      "enum": [
+        "PERSONAL",
+        "BUSINESS"
+      ],
+      "default": "PERSONAL"
+    },
     "v1addNewUserResponse": {
       "type": "object",
       "properties": {
@@ -576,6 +694,28 @@
         "password": {
           "type": "string",
           "title": "Password to be added"
+        }
+      }
+    },
+    "v1updateUserRequest": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "title": "unique id of profile"
+        },
+        "profile": {
+          "$ref": "#/definitions/v1UpdateBody",
+          "title": "profile object to be updated"
+        }
+      }
+    },
+    "v1updateUserResponse": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "title": "unique id of profile updated"
         }
       }
     }

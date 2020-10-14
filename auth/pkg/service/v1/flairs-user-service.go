@@ -72,8 +72,7 @@ func (f *flairsServiceServer) AddNewUser(ctx context.Context, req *v1.AddNewUser
 }
 
 func (f *flairsServiceServer) LoginUser(ctx context.Context, req *v1.LoginRequest) (*v1.LoginResponse, error) {
-
-	return nil, nil
+	return nil, status.Error(codes.Unauthenticated, "Invalid username or password")
 }
 
 func (f *flairsServiceServer) ReadUserBy(ctx context.Context, req *v1.ReadUserByRequest) (*v1.ReadUserByResponse, error) {
@@ -132,6 +131,11 @@ func (f *flairsServiceServer) SetUserPassword(ctx context.Context, req *v1.SetPa
 	return nil, status.Error(codes.InvalidArgument, "Wrong token string")
 
 }
+
+func (f *flairsServiceServer) UpdateUserProfile(ctx context.Context, req *v1.UpdateUserRequest) (*v1.UpdateUserResponse, error) {
+	return nil, nil
+}
+
 
 func (f *flairsServiceServer) ValidateUserEmail(ctx context.Context, req *v1.ValidateEmailRequest) (*v1.CustomResponse, error) {
 

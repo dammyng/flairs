@@ -1,3 +1,4 @@
 ./notes
 notes/
 .env
+./auth/cmd/server/server

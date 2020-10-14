@@ -1,16 +1,16 @@
 package v1
 
 import (
-	v1 "auth/pkg/api/v1"
 	v1internals "auth/internals/v1"
+	v1 "auth/pkg/api/v1"
 
 	"context"
 
+	"github.com/dgrijalva/jwt-go"
+	"github.com/gomodule/redigo/redis"
 	"github.com/jinzhu/gorm"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
-	"github.com/gomodule/redigo/redis"
-
 )
 
 const (
@@ -20,6 +20,12 @@ const (
 type flairsServiceServer struct {
 	Db v1internals.DatabaseHandler
 	RedisConn    redis.Conn
+}
+
+
+type Claims struct {
+	UserId string `json:"user_id"`
+	jwt.StandardClaims
 }
 
 // NewFlairsServiceServer creates ToDo service
