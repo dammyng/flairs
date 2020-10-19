@@ -33,6 +33,14 @@ func NewFlairsServiceServer(db v1internals.DatabaseHandler,redisConn redis.Conn)
 	return &flairsServiceServer{Db: db, RedisConn:    redisConn,}
 }
 
+// DecodeJwt - decodes JWT token from request
+func DecodeJwt(token string, claims *Claims) error {
+	_, err := jwt.ParseWithClaims(token, claims, func(token *jwt.Token) (interface{}, error) {
+		return []byte("secrek_key"), nil
+	})
+	return err
+}
+
 // checkAPI checks if the API version requested by client is supported by server
 func (f *flairsServiceServer) checkAPI(api string) error {
 	// API version is "" means use current version of the service

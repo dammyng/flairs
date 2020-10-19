@@ -342,7 +342,7 @@ func TestLogin_ok(t *testing.T) {
 	}
 
 	claims := &Claims{}
-	err = decodeJwt(vGot.Token, claims)
+	err = DecodeJwt(vGot.Token, claims)
 
 	if err != nil {
 		if err == jwt.ErrSignatureInvalid {
@@ -398,10 +398,16 @@ func TestUpdateUser_ok(t *testing.T) {
 	}
 	
 	uReqt := &v1.UpdateUserRequest{
-
+		Id: u.ID,
+		Profile: &v1.UpdateBody{
+			City: "Lagos",
+		},
 	}
 
-	res, err := s.UpdateUserProfile(ctx, uReqt)
+	md := metadata.Pairs("authorization", vGot.Token)
+	ctx = metadata.NewIncomingContext(ctx, md)
+
+	_, err = s.UpdateUserProfile(ctx, uReqt)
 
 	if err != nil {
 		t.Errorf("flairServiceServer.UpdateUser(ok) failed with = %v", err)
@@ -411,15 +417,16 @@ func TestUpdateUser_ok(t *testing.T) {
 	var uu v1internals.User
 	testDb.Where("email = ?", uReq.Email).Last(&uu)
 
+	if uu.City == u.City{
+		t.Errorf("flairServiceServer.UpdateUser(ok) failed City is supposed to be %v, got %v", uReqt.Profile.City, uu.City)
+	}
+	if reflect.DeepEqual(uu, u){
+		t.Errorf("flairServiceServer.UpdateUser(ok) failed with")
+	}
 	
 }
 
-func decodeJwt(token string, claims *Claims) error {
-	_, err := jwt.ParseWithClaims(token, claims, func(token *jwt.Token) (interface{}, error) {
-		return []byte("secrek_key"), nil
-	})
-	return err
-}
+
 
 func clearUsersTable() {
 	testDb.Exec(setup.ClearUserTable)

@@ -111,8 +111,8 @@ func (f *flairsServiceServer) LoginUser(ctx context.Context, req *v1.LoginReques
 
 	res := &v1.LoginResponse{
 		Token: tokenString,
-		User:  &v1.Profile{
-			ID:user.ID,
+		User: &v1.Profile{
+			ID: user.ID,
 		},
 	}
 
@@ -177,7 +177,46 @@ func (f *flairsServiceServer) SetUserPassword(ctx context.Context, req *v1.SetPa
 }
 
 func (f *flairsServiceServer) UpdateUserProfile(ctx context.Context, req *v1.UpdateUserRequest) (*v1.UpdateUserResponse, error) {
-	return nil, nil
+
+	u := v1helper.DecodeToSQLUser(req.Profile)
+	md, ok := metadata.FromIncomingContext(ctx)
+	if !ok {
+		return nil, status.Errorf(codes.DataLoss, "failed to get metadata")
+	}
+	authorization := md.Get("Authorization")[0]
+	if authorization == "" {
+		return nil, status.Error(codes.Unauthenticated, "Invalid authorization token ")
+	}
+
+	claims := &Claims{}
+	err := DecodeJwt(authorization, claims)
+
+	if err != nil {
+		if err == jwt.ErrSignatureInvalid {
+			return nil, status.Errorf(codes.Unauthenticated, "Invalid token")
+
+		}
+		return nil, status.Errorf(codes.Unauthenticated, "Token inaccessible")
+	}
+	_, err = f.Db.FindUser(&v1.User{ID: req.Id})
+
+	if err != nil {
+		return nil, status.Error(codes.NotFound, "Error fetching user record "+err.Error())
+	}
+	
+	if req.Id != claims.UserID {
+		return nil, status.Error(codes.Unauthenticated, "Error fetching user record ")
+	}
+
+	err = f.Db.UpdateUser(&v1.User{ID: req.Id}, u)
+	if err != nil {
+		return nil, status.Error(codes.Internal, "Service failed"+err.Error())
+	}
+	res := &v1.UpdateUserResponse{
+		Id: req.Id,
+	}
+
+	return res, nil
 }
 
 func (f *flairsServiceServer) ValidateUserEmail(ctx context.Context, req *v1.ValidateEmailRequest) (*v1.CustomResponse, error) {
