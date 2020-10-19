@@ -124,7 +124,32 @@ func (f *flairsServiceServer) ReadUserBy(ctx context.Context, req *v1.ReadUserBy
 }
 
 func (f *flairsServiceServer) ResetUserPassword(ctx context.Context, req *v1.ResetPasswordRequest) (*v1.CustomResponse, error) {
-	return nil, nil
+	u := v1helper.DecodeToSQLUser(req)
+	user, err := f.Db.FindUser(u)
+	if err != nil {
+		return nil, status.Error(codes.NotFound, "Error fetching user record "+err.Error())
+	}
+
+	emailVerfiedAt := user.EmailVerifiedAt
+	if emailVerfiedAt.IsZero() {
+		return nil, status.Error(codes.NotFound, "Error fetching user record "+err.Error())
+	}
+
+	token := v1helper.RandInt(6)
+	_, err = f.RedisConn.Do("HMSET", "password:reset", user.Email, token)
+
+	//
+	//Rabbit send the mail
+
+	// TODO how to handle this error
+	if err != nil {
+		return nil, status.Error(codes.NotFound, "Error fetching user record "+err.Error())
+	}
+	return &v1.CustomResponse{
+		Api: "v1",
+		Message: "Successful",
+		Request: "Reset password",
+	}, nil
 }
 
 func (f *flairsServiceServer) SetUserPassword(ctx context.Context, req *v1.SetPasswordRequest) (*v1.CustomResponse, error) {
@@ -208,7 +233,12 @@ func (f *flairsServiceServer) UpdateUserProfile(ctx context.Context, req *v1.Upd
 		return nil, status.Error(codes.Unauthenticated, "Error fetching user record ")
 	}
 
-	err = f.Db.UpdateUser(&v1.User{ID: req.Id}, u)
+	uu := &v1.User{ID: req.Id}
+	err = f.Db.UpdateUser(uu, u)
+
+	profileComplete := IsProfileCompled(uu)
+	err = f.Db.UpdateUser(uu, &v1.User{IsProfileCompleted: profileComplete})
+
 	if err != nil {
 		return nil, status.Error(codes.Internal, "Service failed"+err.Error())
 	}

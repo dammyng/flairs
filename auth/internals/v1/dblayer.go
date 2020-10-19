@@ -43,3 +43,4 @@ func (db *MysqlLayer) UpdateUser(old *v1.User, new *v1.User, ) error {
 func (db *MysqlLayer) UpdateUserMap(arg *v1.User, dict map[string]interface{}) error {
 	return db.Session.Model(&arg).Update(dict).Error
 }
+

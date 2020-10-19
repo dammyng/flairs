@@ -401,6 +401,8 @@ func TestUpdateUser_ok(t *testing.T) {
 		Id: u.ID,
 		Profile: &v1.UpdateBody{
 			City: "Lagos",
+			FirstName: "Dami",
+			DOB: "2020-10-19T02:11:07+00:00",
 		},
 	}
 

@@ -3,6 +3,9 @@ package v1
 import (
 	v1internals "auth/internals/v1"
 	v1 "auth/pkg/api/v1"
+	"fmt"
+	"log"
+	"reflect"
 
 	"context"
 
@@ -60,5 +63,47 @@ func (f *flairsServiceServer) connect(ctx context.Context) (*gorm.DB, error) {
 		return nil, status.Error(codes.Unknown, "failed to connect to database-> "+err.Error())
 	}
 	return c, nil
+}
+
+// IsProfileCompled -> check if user profile contains all required property
+func IsProfileCompled(u *v1.User) bool {
+	arr := [9]interface{}{u.FirstName, u.LastName, u.HowDidYouHearAboutUs, u.BVN, u.DOB, u.PhoneNumber, u.Gender, u.ACCOUNT_TYPE, u.UserName}
+	arr_name := [9]interface{}{"FirstName", "LastName", "HowDidYouHearAboutUs", "BVN", "DOB", "PhoneNumber", "Gender", "ACCOUNT_TYPE", "UserName"}
+
+	for i, v := range arr {
+		isZ, err := IsZero(v)
+		if err != nil {
+			log.Fatalf(err.Error())
+		}
+		if isZ == true {
+			fmt.Printf("%s:%v  is true \n", arr_name[i], v)
+			return false
+		}
+	}
+	zeroCard, err := IsZero(u.IDCard)
+	zeroPassport, err := IsZero(u.Passport)
+
+	if err != nil {
+		log.Fatalf(err.Error())
+	}
+
+	bothZero := zeroCard && zeroPassport
+
+	if bothZero {
+		return false
+	}
+
+	if string(u.Pin) == "" {
+		return false
+	}
+	return true
+}
+
+func IsZero(v interface{}) (bool, error) {
+	t := reflect.TypeOf(v)
+	if !t.Comparable() {
+		return false, fmt.Errorf("type is not comparable: %v", t)
+	}
+	return v == reflect.Zero(t).Interface(), nil
 }
 
