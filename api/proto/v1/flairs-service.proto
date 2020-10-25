@@ -145,25 +145,19 @@ message Profile{
     google.protobuf.Timestamp updatedAt = 30;
 }
 
-message addNewUserRequest{
-    string api = 1;
-    
+message addNewUserRequest{    
     // Email of user to be added
     string email = 2;
-        // Referral code if available
-        string ref = 3;
+    // Referral code if available
+    string ref = 3;
 }
 
 message addNewUserResponse{
-    string api = 1;
-
     // ID of the created user
     string ID = 2;
 }
 
-message validateEmailRequest{
-    string api = 1;
-    
+message validateEmailRequest{    
     // Email of user to be validated
     string email = 2;
     // Token for validation
@@ -180,7 +174,6 @@ message setPasswordRequest{
 }
 
 message resetPasswordRequest{
-    string api = 1;
         // jwt token for authentication
         string token = 2;    
     // Email of user to set password
@@ -191,7 +184,6 @@ message resetPasswordRequest{
 
 
 message readUserByRequest{
-    string api = 1;
         // jwt token for authentication
         string token = 2;    
 
@@ -207,9 +199,7 @@ message readUserByRequest{
 
 }
 
-message readUserByResponse{
-    string api = 1;
-    
+message readUserByResponse{    
     // User entity read br request
     Profile user = 2;
 }
@@ -226,18 +216,14 @@ message updateUserResponse{
     string  id = 2;
 }
 
-message LoginRequest{
-    string api = 1;
-    
+message LoginRequest{    
     // Unique email address of the user entity
     string email = 2;
     // password of the user entity
     string password = 3;
 }
 
-message LoginResponse{
-    string api = 1;
-    
+message LoginResponse{    
     // jwt token for authentication
     string token = 2;
     // User entity read br request
@@ -246,9 +232,7 @@ message LoginResponse{
 
 
 
-message customResponse{
-    string api = 1;
-    
+message customResponse{    
     // Request title for message
     string request = 2;
     // Custom message in response

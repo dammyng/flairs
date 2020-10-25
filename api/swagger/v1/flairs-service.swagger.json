@@ -223,12 +223,6 @@
             "type": "string"
           },
           {
-            "name": "api",
-            "in": "query",
-            "required": false,
-            "type": "string"
-          },
-          {
             "name": "ref",
             "description": "Referral code if available.",
             "in": "query",
@@ -328,12 +322,6 @@
             "in": "path",
             "required": true,
             "type": "string"
-          },
-          {
-            "name": "api",
-            "in": "query",
-            "required": false,
-            "type": "string"
           }
         ],
         "tags": [
@@ -392,9 +380,6 @@
     "v1LoginRequest": {
       "type": "object",
       "properties": {
-        "api": {
-          "type": "string"
-        },
         "email": {
           "type": "string",
           "title": "Unique email address of the user entity"
@@ -408,9 +393,6 @@
     "v1LoginResponse": {
       "type": "object",
       "properties": {
-        "api": {
-          "type": "string"
-        },
         "token": {
           "type": "string",
           "title": "jwt token for authentication"
@@ -605,9 +587,6 @@
     "v1addNewUserResponse": {
       "type": "object",
       "properties": {
-        "api": {
-          "type": "string"
-        },
         "ID": {
           "type": "string",
           "title": "ID of the created user"
@@ -617,9 +596,6 @@
     "v1customResponse": {
       "type": "object",
       "properties": {
-        "api": {
-          "type": "string"
-        },
         "request": {
           "type": "string",
           "title": "Request title for message"
@@ -633,9 +609,6 @@
     "v1readUserByRequest": {
       "type": "object",
       "properties": {
-        "api": {
-          "type": "string"
-        },
         "token": {
           "type": "string",
           "title": "jwt token for authentication"
@@ -652,9 +625,6 @@
     "v1readUserByResponse": {
       "type": "object",
       "properties": {
-        "api": {
-          "type": "string"
-        },
         "user": {
           "$ref": "#/definitions/v1Profile",
           "title": "User entity read br request"
@@ -664,9 +634,6 @@
     "v1resetPasswordRequest": {
       "type": "object",
       "properties": {
-        "api": {
-          "type": "string"
-        },
         "token": {
           "type": "string",
           "title": "jwt token for authentication"

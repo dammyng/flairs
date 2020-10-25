@@ -60,7 +60,6 @@ func TestAddUser_ok(t *testing.T) {
 	s := NewFlairsServiceServer(sqlLayer, testRedis)
 
 	req := &v1.AddNewUserRequest{
-		Api:   "v1",
 		Email: "someone@flairs.com",
 		Ref:   "dddddd",
 	}
@@ -87,7 +86,6 @@ func TestAddUser_duplicate_email(t *testing.T) {
 	s := NewFlairsServiceServer(sqlLayer, testRedis)
 
 	req := &v1.AddNewUserRequest{
-		Api:   "v1",
 		Email: "someone@flairs.com",
 		Ref:   "dddddd",
 	}
@@ -117,7 +115,6 @@ func TestAddUser_invalid_entry(t *testing.T) {
 	s := NewFlairsServiceServer(sqlLayer, testRedis)
 
 	req := &v1.AddNewUserRequest{
-		Api: "v1",
 		Ref: "dddddd",
 	}
 
@@ -140,7 +137,6 @@ func TestAddUser_ok_no_ref(t *testing.T) {
 	s := NewFlairsServiceServer(sqlLayer, testRedis)
 
 	req := &v1.AddNewUserRequest{
-		Api:   "v1",
 		Email: "someone@flairs.com",
 	}
 
@@ -167,7 +163,6 @@ func TestVerifyEmail_ok(t *testing.T) {
 	s := NewFlairsServiceServer(sqlLayer, testRedis)
 
 	uReq := &v1.AddNewUserRequest{
-		Api:   "v1",
 		Email: "someone@flairs.com",
 	}
 
@@ -182,7 +177,6 @@ func TestVerifyEmail_ok(t *testing.T) {
 		t.Errorf("flairServiceServer.ValidateUserEmail() Redis token was not saved when user got created with = %v", err.Error())
 	}
 	req := &v1.ValidateEmailRequest{
-		Api:   "v1",
 		Token: token,
 		Email: uReq.Email,
 	}
@@ -194,7 +188,6 @@ func TestVerifyEmail_ok(t *testing.T) {
 	}
 
 	want := &v1.CustomResponse{
-		Api:     "v1",
 		Message: "Successfully verified email",
 		Request: "verify_email",
 	}
@@ -213,7 +206,6 @@ func TestVerifyEmail_wrongtoken(t *testing.T) {
 	s := NewFlairsServiceServer(sqlLayer, testRedis)
 
 	uReq := &v1.AddNewUserRequest{
-		Api:   "v1",
 		Email: "someone@flairs.com",
 	}
 
@@ -228,7 +220,6 @@ func TestVerifyEmail_wrongtoken(t *testing.T) {
 		t.Errorf("flairServiceServer.ValidateUserEmail() Redis token was not saved when user got created with = %v", err.Error())
 	}
 	req := &v1.ValidateEmailRequest{
-		Api:   "v1",
 		Token: token + "xxx",
 		Email: uReq.Email,
 	}
@@ -253,7 +244,6 @@ func TestAddPassword_ok(t *testing.T) {
 	s := NewFlairsServiceServer(sqlLayer, testRedis)
 
 	uReq := &v1.AddNewUserRequest{
-		Api:   "v1",
 		Email: "someone@flairs.com",
 	}
 
@@ -276,7 +266,6 @@ func TestAddPassword_ok(t *testing.T) {
 		t.Errorf("flairServiceServer.AddPassword() Redis token was not saved when user got created with = %v", err.Error())
 	}
 	req := &v1.SetPasswordRequest{
-		Api:      "v1",
 		Email:    uReq.Email,
 		Password: "Password",
 	}
@@ -291,7 +280,6 @@ func TestAddPassword_ok(t *testing.T) {
 	}
 
 	want := &v1.CustomResponse{
-		Api:     "v1",
 		Message: "Successfully Add Password",
 		Request: "add_password",
 	}
@@ -310,7 +298,6 @@ func TestLogin_ok(t *testing.T) {
 	s := NewFlairsServiceServer(sqlLayer, testRedis)
 
 	uReq := &v1.AddNewUserRequest{
-		Api:   "v1",
 		Email: "someone@flairs.com",
 	}
 
@@ -329,7 +316,6 @@ func TestLogin_ok(t *testing.T) {
 	}
 
 	req := &v1.LoginRequest{
-		Api:      "v1",
 		Email:    uReq.Email,
 		Password: "password",
 	}
@@ -367,7 +353,6 @@ func TestUpdateUser_ok(t *testing.T) {
 	s := NewFlairsServiceServer(sqlLayer, testRedis)
 
 	uReq := &v1.AddNewUserRequest{
-		Api:   "v1",
 		Email: "someone@flairs.com",
 	}
 
@@ -385,7 +370,6 @@ func TestUpdateUser_ok(t *testing.T) {
 		t.Errorf("flairServiceServer.UpdateUser() failed - Could not verify email && password failed with = %v", err.Error())
 	}
 	req := &v1.LoginRequest{
-		Api:      "v1",
 		Email:    uReq.Email,
 		Password: "password",
 	}
@@ -427,8 +411,6 @@ func TestUpdateUser_ok(t *testing.T) {
 	}
 	
 }
-
-
 
 func clearUsersTable() {
 	testDb.Exec(setup.ClearUserTable)

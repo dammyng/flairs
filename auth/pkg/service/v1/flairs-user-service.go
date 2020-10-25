@@ -67,7 +67,6 @@ func (f *flairsServiceServer) AddNewUser(ctx context.Context, req *v1.AddNewUser
 
 	// Response
 	return &v1.AddNewUserResponse{
-		Api: apiVersion,
 		ID:  ID,
 	}, nil
 }
@@ -146,7 +145,6 @@ func (f *flairsServiceServer) ResetUserPassword(ctx context.Context, req *v1.Res
 		return nil, status.Error(codes.NotFound, "Error fetching user record "+err.Error())
 	}
 	return &v1.CustomResponse{
-		Api: "v1",
 		Message: "Successful",
 		Request: "Reset password",
 	}, nil
@@ -190,7 +188,6 @@ func (f *flairsServiceServer) SetUserPassword(ctx context.Context, req *v1.SetPa
 		}
 		redis.Int(f.RedisConn.Do("HDEL", "password:reset", req.Email))
 		res := &v1.CustomResponse{
-			Api:     "v1",
 			Message: "Successfully Add Password",
 			Request: "add_password",
 		}
@@ -279,7 +276,6 @@ func (f *flairsServiceServer) ValidateUserEmail(ctx context.Context, req *v1.Val
 		return nil, status.Error(codes.InvalidArgument, "Wrong token string")
 	}
 	return &v1.CustomResponse{
-		Api:     "v1",
 		Message: "Successfully verified email",
 		Request: "verify_email",
 	}, nil

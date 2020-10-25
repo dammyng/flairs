@@ -7,13 +7,8 @@ import (
 	"log"
 	"reflect"
 
-	"context"
-
 	"github.com/dgrijalva/jwt-go"
 	"github.com/gomodule/redigo/redis"
-	"github.com/jinzhu/gorm"
-	"google.golang.org/grpc/codes"
-	"google.golang.org/grpc/status"
 )
 
 const (
@@ -44,26 +39,6 @@ func DecodeJwt(token string, claims *Claims) error {
 	return err
 }
 
-// checkAPI checks if the API version requested by client is supported by server
-func (f *flairsServiceServer) checkAPI(api string) error {
-	// API version is "" means use current version of the service
-	if len(api) > 0 {
-		if apiVersion != api {
-			return status.Errorf(codes.Unimplemented,
-				"unsupported API version: service implements API version '%s', but asked for '%s'", apiVersion, api)
-		}
-	}
-	return nil
-}
-
-// connect returns SQL database connection from the pool
-func (f *flairsServiceServer) connect(ctx context.Context) (*gorm.DB, error) {
-	c, err := f.connect(ctx)
-	if err != nil {
-		return nil, status.Error(codes.Unknown, "failed to connect to database-> "+err.Error())
-	}
-	return c, nil
-}
 
 // IsProfileCompled -> check if user profile contains all required property
 func IsProfileCompled(u *v1.User) bool {
