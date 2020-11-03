@@ -43,17 +43,23 @@ option (grpc.gateway.protoc_gen_swagger.options.openapiv2_swagger) = {
     }
 };
 
-message Wallet{
+message Transaction{
     string ID =1;
-    string userId = 2;
-    string accountBal = 10;
-    string ledgerBal = 12;
-    string walletType = 6;
-    string description = 8;
-    string termID = 5;
-    string name = 7;
-    string currency = 9;
-    string dateCreated = 11;
+    string initiatedID = 2;
+    int32 classId =3;
+    string amount = 4;
+    string memo=5;
+    string dateCreated = 9;
+    string walletId =8;
+}
+
+message TransactionClass{
+    string ID = 1;
+    string name =2;
+    enum accountType {
+        EXPENSE =0;
+        INCOME=1;
+    };
 }
 
 
