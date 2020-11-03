@@ -1,0 +1,96 @@
+syntax = "proto3";
+package v1;
+
+import "google/protobuf/timestamp.proto";
+import "google/api/annotations.proto";
+import "protoc-gen-swagger/options/annotations.proto";
+
+option (grpc.gateway.protoc_gen_swagger.options.openapiv2_swagger) = {
+	info: {
+		title: "Flairs service";
+        version: "1.0";
+		contact: {
+			name: "flairs mobile banking system";
+			url: "http://www.alphaplus.finance/";
+			email: "dammydarmy@gmail.com";
+        };
+    };
+    host:"localhost:9000";
+    schemes: [HTTP, HTTPS];
+    consumes: "application/json";
+    produces: "application/json";
+    responses: {
+		key: "404";
+		value: {
+			description: "Returned when the resource does not exist.";
+			schema: {
+				json_schema: {
+					type: STRING;
+				}
+			}
+		}
+    }
+    security_definitions: {
+           security:{
+            key:"flairs_token" 
+            value{
+                type: TYPE_API_KEY
+                in: IN_HEADER
+                name: "Authorization"
+                description: "Authentication token, passed into header"
+              }
+           }
+    }
+};
+
+message Wallet{
+    string ID =1;
+    string userId = 2;
+    float accountBal = 10;
+    float ledgerBal = 12;
+    string walletType = 6;
+    string memo = 8;
+    string termID = 5;
+    string name = 7;
+    bool status = 3;
+    string currency = 9;
+    string dateCreated = 11;
+    string dateBalUpdate = 4;
+    string lastUpdate = 13;
+}
+
+message WalletTerms{
+    int32 ID=1;
+    string name=3;
+    string description = 4;
+    string withdrawDay = 2;
+}
+
+message WalletType{
+    int32 ID=1;
+    string name=3;
+    string description = 4;
+}
+
+message newWalletRequest{
+    string name = 7;
+    string walletType = 6;
+    string currency = 9;
+    string memo = 8;
+    float accountBal = 10;
+    float ledgerBal = 12;
+}
+
+message addWalletResponse{
+    string ID=1;
+}
+
+service WalletService{
+       // Create a new wallet
+       rpc AddNewWallet (newWalletRequest) returns (addWalletResponse){
+        option (google.api.http)={
+            post: "/v1/wallet"
+            body:"*"
+        };
+    }
+}
