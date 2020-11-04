@@ -1,13 +1,14 @@
 package v1
 
 import (
-	v1internals "wallet/internals/v1"
-	v1 "wallet/pkg/api/v1"
-
 	"context"
 	"github.com/dgrijalva/jwt-go"
+	uuid "github.com/satori/go.uuid"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
+	"time"
+	v1internals "wallet/internals/v1"
+	v1 "wallet/pkg/api/v1"
 )
 
 const (
@@ -37,6 +38,33 @@ func DecodeJwt(token string, claims *Claims) error {
 	return err
 }
 
-func (f *flairsWalletServer) AddNewWallet(ctx context.Context, req *v1.NewWalletRequest)( *v1.AddWalletResponse, error) {
-	return nil, status.Error(codes.Internal, "")
+func (f *flairsWalletServer) AddNewWallet(ctx context.Context, req *v1.NewWalletRequest) (*v1.AddWalletResponse, error) {
+	ID := uuid.NewV4().String()
+	UID := uuid.NewV4().String()
+
+	newWallet := v1.Wallet{
+		AccountBal:    0.00,
+		LedgerBal:     0.00,
+		Currency:      req.Currency,
+		ID:            ID,
+		WalletType:    req.WalletType,
+		UserId:        UID,
+		Memo:          req.Memo,
+		Name:          req.Name,
+		TermID:        "1",
+		Status:        true,
+		DateCreated:   time.Now().Format(time.RFC3339),
+		DateBalUpdate: time.Now().Format(time.RFC3339),
+		LastUpdate:    time.Now().Format(time.RFC3339),
+	}
+
+	err := f.Db.CreateWallet(&newWallet)
+	if err != nil {
+		return nil, status.Error(codes.Internal, "failed to create new wallet-> "+err.Error())
+	}
+
+	// Response
+	return &v1.AddWalletResponse{
+		ID: ID,
+	}, nil
 }
