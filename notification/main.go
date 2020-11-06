@@ -43,7 +43,7 @@ func main() {
 }
 
 func ProcessEvents(eventListener events.EventListener) error {
-	received, errors, err := eventListener.Listen("auth", "user.created")
+	received, errors, err := eventListener.Listen("auth", "user.created", "user.defaultwallet")
 	if err != nil {
 		log.Fatalf("event listenner error")
 	}
@@ -156,12 +156,14 @@ func ProcessEvents(eventListener events.EventListener) error {
 				reqURL, _ := url.Parse(e.URL)
 
 				// create request body
-				bodyContent := fmt.Sprintf(`{
+				bodyContent := fmt.Sprintf(
+					`{
 					"name":"default",
 					"memo":"default wallet",
-					"userID": %S,
-				}
-			`, e.UserID)
+					"userID":"userid"
+					}`,"")
+				
+			
 
 				reqBody := ioutil.NopCloser(strings.NewReader(bodyContent))
 

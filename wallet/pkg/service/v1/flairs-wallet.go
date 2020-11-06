@@ -47,7 +47,7 @@ func (f *flairsWalletServer) AddNewWallet(ctx context.Context, req *v1.NewWallet
 		Currency:      req.Currency,
 		ID:            ID,
 		WalletType:    req.WalletType,
-		UserId:        req.UserID,
+		UserId:        req.UserId,
 		Memo:          req.Memo,
 		Name:          req.Name,
 		TermID:        "1",

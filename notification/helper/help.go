@@ -1,11 +1,10 @@
 package helper
 
 import (
-	"fmt"
 	"io/ioutil"
+	"fmt"
 	"log"
 	"net/http"
-	"strings"
 
 	"github.com/sendgrid/sendgrid-go"
 	"github.com/sendgrid/sendgrid-go/helpers/mail"
@@ -42,20 +41,19 @@ func HttpReq(req *http.Request) {
 
 
 	// send an HTTP request using `req` object
-	_, err := http.DefaultClient.Do(req)
+	res, err := http.DefaultClient.Do(req)
 
 	// check for response error
 	if err != nil {
 		log.Fatal("Error:", err)
 	}
-
 	// read response body
-	//data, _ := ioutil.ReadAll(res.Body)
+	data, _ := ioutil.ReadAll(res.Body)
 
 	// close response body
-	//res.Body.Close()
+res.Body.Close()
 
 	// print response status and body
-	//fmt.Printf("status: %d\n", res.StatusCode)
-	//fmt.Printf("body: %s\n", data)
+	log.Println("status: %d\n", res.StatusCode)
+	log.Println("body: %s\n", string(data))
 }

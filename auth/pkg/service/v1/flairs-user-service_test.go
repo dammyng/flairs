@@ -1,6 +1,7 @@
 package v1
 
 import (
+	"github.com/streadway/amqp"
 	"context"
 	"fmt"
 	"log"
@@ -25,16 +26,19 @@ import (
 
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/jinzhu/gorm"
+	e_amqp "shared/events/amqp"
+
 
 )
 
 var testDb *gorm.DB
 var testRedis redis.Conn
-
+var testEmitter e_amqp.EventEmitter
 func TestMain(m *testing.M) {
 
 	initDB()
 	initRedis()
+	initAMQP()
 	code := m.Run()
 	//clearDB()
 	os.Exit(code)
@@ -53,12 +57,22 @@ func initRedis() {
 	redisPool := redisconn.NewPool("localhost:6379")
 	testRedis = redisPool.Get()
 }
+func initAMQP() {
+	conn, err := amqp.Dial("amqp://guest:guest@localhost:5672/")
+	if err != nil {
+		log.Fatal("could not establish amqp connection :" + err.Error())
+	}
 
+	testEmitter, err = e_amqp.NewAMQPEventEmitter(conn, "auth")
+	if err != nil {
+		log.Fatal("could not establish amqp connection :" + err.Error())
+	}
+}
 func TestAddUser_ok(t *testing.T) {
 	clearUsersTable()
 	ctx := context.Background()
 	sqlLayer := v1internals.NewMysqlLayer(testDb)
-	s := NewFlairsServiceServer(sqlLayer, testRedis)
+	s := NewFlairsServiceServer(sqlLayer, testRedis, testEmitter)
 
 	req := &v1.AddNewUserRequest{
 		Email: "someone@flairs.com",
@@ -84,7 +98,7 @@ func TestAddUser_duplicate_email(t *testing.T) {
 	clearUsersTable()
 	ctx := context.Background()
 	sqlLayer := v1internals.NewMysqlLayer(testDb)
-	s := NewFlairsServiceServer(sqlLayer, testRedis)
+	s := NewFlairsServiceServer(sqlLayer, testRedis, testEmitter)
 
 	req := &v1.AddNewUserRequest{
 		Email: "someone@flairs.com",
@@ -113,7 +127,7 @@ func TestAddUser_invalid_entry(t *testing.T) {
 	clearUsersTable()
 	ctx := context.Background()
 	sqlLayer := v1internals.NewMysqlLayer(testDb)
-	s := NewFlairsServiceServer(sqlLayer, testRedis)
+	s := NewFlairsServiceServer(sqlLayer, testRedis, testEmitter)
 
 	req := &v1.AddNewUserRequest{
 		Ref: "dddddd",
@@ -135,7 +149,7 @@ func TestAddUser_ok_no_ref(t *testing.T) {
 	clearUsersTable()
 	ctx := context.Background()
 	sqlLayer := v1internals.NewMysqlLayer(testDb)
-	s := NewFlairsServiceServer(sqlLayer, testRedis)
+	s := NewFlairsServiceServer(sqlLayer, testRedis, testEmitter)
 
 	req := &v1.AddNewUserRequest{
 		Email: "someone@flairs.com",
@@ -161,7 +175,7 @@ func TestVerifyEmail_ok(t *testing.T) {
 	clearUsersTable()
 	ctx := context.Background()
 	sqlLayer := v1internals.NewMysqlLayer(testDb)
-	s := NewFlairsServiceServer(sqlLayer, testRedis)
+	s := NewFlairsServiceServer(sqlLayer, testRedis, testEmitter)
 
 	uReq := &v1.AddNewUserRequest{
 		Email: "someone@flairs.com",
@@ -204,7 +218,7 @@ func TestVerifyEmail_wrongtoken(t *testing.T) {
 	clearUsersTable()
 	ctx := context.Background()
 	sqlLayer := v1internals.NewMysqlLayer(testDb)
-	s := NewFlairsServiceServer(sqlLayer, testRedis)
+	s := NewFlairsServiceServer(sqlLayer, testRedis, testEmitter)
 
 	uReq := &v1.AddNewUserRequest{
 		Email: "someone@flairs.com",
@@ -242,7 +256,7 @@ func TestAddPassword_ok(t *testing.T) {
 	ctx := context.Background()
 
 	sqlLayer := v1internals.NewMysqlLayer(testDb)
-	s := NewFlairsServiceServer(sqlLayer, testRedis)
+	s := NewFlairsServiceServer(sqlLayer, testRedis, testEmitter)
 
 	uReq := &v1.AddNewUserRequest{
 		Email: "someone@flairs.com",
@@ -296,7 +310,7 @@ func TestLogin_ok(t *testing.T) {
 	ctx := context.Background()
 
 	sqlLayer := v1internals.NewMysqlLayer(testDb)
-	s := NewFlairsServiceServer(sqlLayer, testRedis)
+	s := NewFlairsServiceServer(sqlLayer, testRedis, testEmitter)
 
 	uReq := &v1.AddNewUserRequest{
 		Email: "someone@flairs.com",
@@ -351,7 +365,7 @@ func TestUpdateUser_ok(t *testing.T) {
 	ctx := context.Background()
 
 	sqlLayer := v1internals.NewMysqlLayer(testDb)
-	s := NewFlairsServiceServer(sqlLayer, testRedis)
+	s := NewFlairsServiceServer(sqlLayer, testRedis, testEmitter)
 
 	uReq := &v1.AddNewUserRequest{
 		Email: "someone@flairs.com",

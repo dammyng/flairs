@@ -1,6 +1,8 @@
 package cmd
 
 import (
+	"log"
+	"github.com/streadway/amqp"
 	redisconn "auth/redis"
 	"auth/libs/setup"
 	"auth/pkg/protocol/grpc"
@@ -15,6 +17,8 @@ import (
 	_ "github.com/go-sql-driver/mysql"
 
 	"github.com/jinzhu/gorm"
+	e_amqp "shared/events/amqp"
+
 )
 
 // Config is configuration for Server
@@ -86,7 +90,16 @@ func RunServer() error {
 	redisPool := redisconn.NewPool(os.Getenv("REDIS_URL"))
 	redisConn := redisPool.Get()
 
-	v1API := v1.NewFlairsServiceServer(sqlLayer, redisConn)
+	conn, err := amqp.Dial(os.Getenv("AMQP_URL"))
+	if err != nil {
+		log.Fatal("could not establish amqp connection :" + err.Error())
+	}
+
+	eventEmitter, err := e_amqp.NewAMQPEventEmitter(conn, "auth")
+	if err != nil {
+		log.Fatal("could not establish amqp connection :" + err.Error())
+	}
+	v1API := v1.NewFlairsServiceServer(sqlLayer, redisConn, eventEmitter)
 
 	// run HTTP gateway
 	go func() {

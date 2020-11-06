@@ -74,7 +74,7 @@ message WalletType{
 
 message newWalletRequest{
     string name = 7;
-    string userID = 2;
+    string userId = 2;
     string walletType = 6;
     string currency = 9;
     string memo = 8;

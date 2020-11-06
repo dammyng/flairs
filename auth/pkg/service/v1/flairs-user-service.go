@@ -4,7 +4,6 @@ import (
 	v1 "auth/pkg/api/v1"
 	v1helper "auth/pkg/helper/v1"
 	"context"
-	"encoding/hex"
 	"log"
 	"time"
 
@@ -19,7 +18,6 @@ import (
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/metadata"
 	"google.golang.org/grpc/status"
-
 )
 
 // AddNewUser initializes a new user with email address
@@ -67,18 +65,9 @@ func (f *flairsServiceServer) AddNewUser(ctx context.Context, req *v1.AddNewUser
 		log.Fatal(err)
 	}
 
-	// Token - Send token to email with Rabbit
-	msg := events.UserCreatedEvent{
-		ID:    hex.EncodeToString(ID.Bytes()),
-		Host:  "http://localhost:15672/",
-		Email: "user.Email",
-		Token: "Token",
-	}
-	f.EventEmitter.Emit(&msg, "auth")
-	
 	// Response
 	return &v1.AddNewUserResponse{
-		ID:  ID,
+		ID: ID,
 	}, nil
 }
 
@@ -236,7 +225,7 @@ func (f *flairsServiceServer) UpdateUserProfile(ctx context.Context, req *v1.Upd
 	if err != nil {
 		return nil, status.Error(codes.NotFound, "Error fetching user record "+err.Error())
 	}
-	
+
 	if req.Id != claims.UserID {
 		return nil, status.Error(codes.Unauthenticated, "Error fetching user record ")
 	}
@@ -283,9 +272,16 @@ func (f *flairsServiceServer) ValidateUserEmail(ctx context.Context, req *v1.Val
 		}
 		redis.Int(f.RedisConn.Do("HDEL", "email:verification", req.Email))
 
+		// Token - Send token to email with Rabbit
+		msg := events.CreateDefWallet{
+			URL:    "http://localhost:9000/v1/wallet",
+			UserID: user.ID,
+		}
+		f.EventEmitter.Emit(&msg, "auth")
 	} else {
 		return nil, status.Error(codes.InvalidArgument, "Wrong token string")
 	}
+
 	return &v1.CustomResponse{
 		Message: "Successfully verified email",
 		Request: "verify_email",
