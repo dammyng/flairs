@@ -113,6 +113,9 @@
         "name": {
           "type": "string"
         },
+        "userID": {
+          "type": "string"
+        },
         "walletType": {
           "type": "string"
         },

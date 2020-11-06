@@ -9,6 +9,8 @@ import (
 
 	"github.com/dgrijalva/jwt-go"
 	"github.com/gomodule/redigo/redis"
+	amqp "shared/events/amqp"
+
 )
 
 const (
@@ -18,6 +20,7 @@ const (
 type flairsServiceServer struct {
 	Db v1internals.DatabaseHandler
 	RedisConn    redis.Conn
+	EventEmitter amqp.EventEmitter
 }
 
 // Claims jwt custom authentication claims 
@@ -27,8 +30,12 @@ type Claims struct {
 }
 
 // NewFlairsServiceServer creates ToDo service
-func NewFlairsServiceServer(db v1internals.DatabaseHandler,redisConn redis.Conn) v1.FlairsServiceServer {
-	return &flairsServiceServer{Db: db, RedisConn:    redisConn,}
+func NewFlairsServiceServer(db v1internals.DatabaseHandler,redisConn redis.Conn, eventEmitter amqp.EventEmitter) v1.FlairsServiceServer {
+	return &flairsServiceServer{
+		Db: db, 
+		RedisConn:    redisConn, 
+		EventEmitter: eventEmitter,
+	}
 }
 
 // DecodeJwt - decodes JWT token from request

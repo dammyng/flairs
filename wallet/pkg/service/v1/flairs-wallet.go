@@ -40,7 +40,6 @@ func DecodeJwt(token string, claims *Claims) error {
 
 func (f *flairsWalletServer) AddNewWallet(ctx context.Context, req *v1.NewWalletRequest) (*v1.AddWalletResponse, error) {
 	ID := uuid.NewV4().String()
-	UID := uuid.NewV4().String()
 
 	newWallet := v1.Wallet{
 		AccountBal:    0.00,
@@ -48,7 +47,7 @@ func (f *flairsWalletServer) AddNewWallet(ctx context.Context, req *v1.NewWallet
 		Currency:      req.Currency,
 		ID:            ID,
 		WalletType:    req.WalletType,
-		UserId:        UID,
+		UserId:        req.UserID,
 		Memo:          req.Memo,
 		Name:          req.Name,
 		TermID:        "1",

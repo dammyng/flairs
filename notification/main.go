@@ -5,11 +5,15 @@ import (
 	"fmt"
 	"html"
 	"html/template"
+	"io/ioutil"
 	"log"
+	"net/http"
+	"net/url"
 	"os"
+	"strings"
 
-	"github.com/joho/godotenv"
 	rice "github.com/GeertJohan/go.rice"
+	"github.com/joho/godotenv"
 
 	"notification/helper"
 	"shared/events"
@@ -147,6 +151,29 @@ func ProcessEvents(eventListener events.EventListener) error {
 				}
 				helper.SendMail(msg, os.Getenv("AlphaAdmin"), os.Getenv("SendGridKey"))
 				fmt.Println("got here")
+			case *events.CreateDefWallet:
+				// get request URL
+				reqURL, _ := url.Parse(e.URL)
+
+				// create request body
+				bodyContent := fmt.Sprintf(`{
+					"name":"default",
+					"memo":"default wallet",
+					"userID": %S,
+				}
+			`, e.UserID)
+
+				reqBody := ioutil.NopCloser(strings.NewReader(bodyContent))
+
+				req := &http.Request{
+					Method: "POST",
+					URL:    reqURL,
+					Header: map[string][]string{
+						"Content-Type": {"application/json; charset=UTF-8"},
+					},
+					Body: reqBody,
+				}
+				helper.HttpReq(req)
 			default:
 				log.Printf("unknown event: %t", e)
 			}

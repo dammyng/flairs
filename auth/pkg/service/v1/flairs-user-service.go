@@ -4,10 +4,13 @@ import (
 	v1 "auth/pkg/api/v1"
 	v1helper "auth/pkg/helper/v1"
 	"context"
+	"encoding/hex"
 	"log"
 	"time"
 
 	"golang.org/x/crypto/bcrypt"
+
+	"shared/events"
 
 	"github.com/dgrijalva/jwt-go"
 	"github.com/gomodule/redigo/redis"
@@ -16,6 +19,7 @@ import (
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/metadata"
 	"google.golang.org/grpc/status"
+
 )
 
 // AddNewUser initializes a new user with email address
@@ -64,7 +68,14 @@ func (f *flairsServiceServer) AddNewUser(ctx context.Context, req *v1.AddNewUser
 	}
 
 	// Token - Send token to email with Rabbit
-
+	msg := events.UserCreatedEvent{
+		ID:    hex.EncodeToString(ID.Bytes()),
+		Host:  "http://localhost:15672/",
+		Email: "user.Email",
+		Token: "Token",
+	}
+	f.EventEmitter.Emit(&msg, "auth")
+	
 	// Response
 	return &v1.AddNewUserResponse{
 		ID:  ID,

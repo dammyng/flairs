@@ -27,6 +27,11 @@ type OTPCreated struct {
 	Host  string `json:"host"`
 }
 
+type CreateDefWallet struct {
+	URL  string `json:"host"`
+	UserID  string `json:"host"`
+}
+
 func (e *UserCreatedEvent) EventName() string {
 	return "user.created"
 }
@@ -40,4 +45,8 @@ func (e *OTPCreated) EventName() string {
 
 func (e *WelcomeUserEvent) EventName() string {
 	return "user.welcome"
+}
+
+func (e *CreateDefWallet) EventName() string {
+	return "user.defaultwallet"
 }
