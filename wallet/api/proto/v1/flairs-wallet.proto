@@ -48,11 +48,10 @@ message Wallet{
     string userId = 2;
     float accountBal = 10;
     float ledgerBal = 12;
-    string walletType = 6;
+    int32 walletType = 6;
     string memo = 8;
-    string termID = 5;
     string name = 7;
-    bool status = 3;
+    string status = 3;
     string currency = 9;
     string dateCreated = 11;
     string dateBalUpdate = 4;
@@ -75,22 +74,60 @@ message WalletType{
 message newWalletRequest{
     string name = 7;
     string userId = 2;
-    string walletType = 6;
+    int32 walletType = 6;
     string currency = 9;
     string memo = 8;
+    string status=1;
     float accountBal = 10;
     float ledgerBal = 12;
+
 }
 
 message addWalletResponse{
     string ID=1;
 }
 
+message newWalletTypeRequest{
+    string name=3;
+    string description = 4;
+}
+
+message addWalletTypeResponse{
+    string ID=1;
+}
+
+message newWalletTermRequest{
+    string name=3;
+    string description = 4;
+    int32 withdrawDay = 2;
+}
+
+message addWalletTermResponse{
+    string ID=1;
+}
+
+
 service WalletService{
        // Create a new wallet
        rpc AddNewWallet (newWalletRequest) returns (addWalletResponse){
         option (google.api.http)={
             post: "/v1/wallet"
+            body:"*"
+        };
+    }
+
+        // Create a new wallet terms
+        rpc AddWalletTerm (newWalletTermRequest) returns (addWalletTermResponse){
+            option (google.api.http)={
+                post: "/v1/wallet_term"
+                body:"*"
+            };
+        }
+
+               // Create a new wallet type
+       rpc AddWalletType (newWalletTypeRequest) returns (addWalletTypeResponse){
+        option (google.api.http)={
+            post: "/v1/wallet_type"
             body:"*"
         };
     }

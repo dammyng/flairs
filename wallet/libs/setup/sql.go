@@ -10,13 +10,8 @@ var (
 
 	CreateWalletTable = `CREATE TABLE IF NOT EXISTS wallets (
 		id varchar(255) NOT NULL UNIQUE,
-		created_at timestamp NULL DEFAULT NULL,
-		last_update timestamp NULL DEFAULT NULL,
-		deleted_at timestamp NULL DEFAULT NULL,
 		user_id varchar(255) NOT NULL,
 		account_bal varchar(255) NOT NULL,
-		term_id varchar(8),
-		customer_id bigint(20) NOT NULL,
 		available_bal varchar(255) DEFAULT NULL,
 		ledger_bal varchar(255) DEFAULT NULL,
 		wallet_type varchar(1) NOT NULL,
@@ -25,7 +20,9 @@ var (
 		currency varchar(20) NOT NULL,
 		status varchar(255) DEFAULT NULL,
 		date_created varchar(255) DEFAULT NULL,
-		date_bal_update varchar(255) DEFAULT NULL
+		date_bal_update varchar(255) DEFAULT NULL,
+		last_update timestamp NULL DEFAULT NULL,
+		deleted_at timestamp NULL DEFAULT NULL
 	  ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 	  `
 )

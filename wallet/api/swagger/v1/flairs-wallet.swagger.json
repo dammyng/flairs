@@ -60,6 +60,86 @@
           "WalletService"
         ]
       }
+    },
+    "/v1/wallet_term": {
+      "post": {
+        "summary": "Create a new wallet terms",
+        "operationId": "WalletService_AddWalletTerm",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1addWalletTermResponse"
+            }
+          },
+          "404": {
+            "description": "Returned when the resource does not exist.",
+            "schema": {
+              "type": "string",
+              "format": "string"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/runtimeError"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v1newWalletTermRequest"
+            }
+          }
+        ],
+        "tags": [
+          "WalletService"
+        ]
+      }
+    },
+    "/v1/wallet_type": {
+      "post": {
+        "summary": "Create a new wallet type",
+        "operationId": "WalletService_AddWalletType",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1addWalletTypeResponse"
+            }
+          },
+          "404": {
+            "description": "Returned when the resource does not exist.",
+            "schema": {
+              "type": "string",
+              "format": "string"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/runtimeError"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v1newWalletTypeRequest"
+            }
+          }
+        ],
+        "tags": [
+          "WalletService"
+        ]
+      }
     }
   },
   "definitions": {
@@ -107,6 +187,22 @@
         }
       }
     },
+    "v1addWalletTermResponse": {
+      "type": "object",
+      "properties": {
+        "ID": {
+          "type": "string"
+        }
+      }
+    },
+    "v1addWalletTypeResponse": {
+      "type": "object",
+      "properties": {
+        "ID": {
+          "type": "string"
+        }
+      }
+    },
     "v1newWalletRequest": {
       "type": "object",
       "properties": {
@@ -117,12 +213,16 @@
           "type": "string"
         },
         "walletType": {
-          "type": "string"
+          "type": "integer",
+          "format": "int32"
         },
         "currency": {
           "type": "string"
         },
         "memo": {
+          "type": "string"
+        },
+        "status": {
           "type": "string"
         },
         "accountBal": {
@@ -132,6 +232,32 @@
         "ledgerBal": {
           "type": "number",
           "format": "float"
+        }
+      }
+    },
+    "v1newWalletTermRequest": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "description": {
+          "type": "string"
+        },
+        "withdrawDay": {
+          "type": "integer",
+          "format": "int32"
+        }
+      }
+    },
+    "v1newWalletTypeRequest": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "description": {
+          "type": "string"
         }
       }
     }

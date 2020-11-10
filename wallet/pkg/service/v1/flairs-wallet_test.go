@@ -51,7 +51,7 @@ func TestCreateWallet_ok(t *testing.T)  {
 		LedgerBal: 0.00,
 		Memo: "This is a test wallet",
 		Name: "Test wallet",
-		WalletType: "1",
+		WalletType: 101,
 	}
 	got, err := s.AddNewWallet(ctx, rq)
 	if err != nil {

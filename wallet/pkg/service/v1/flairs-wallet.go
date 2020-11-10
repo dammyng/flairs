@@ -42,16 +42,15 @@ func (f *flairsWalletServer) AddNewWallet(ctx context.Context, req *v1.NewWallet
 	ID := uuid.NewV4().String()
 
 	newWallet := v1.Wallet{
-		AccountBal:    0.00,
-		LedgerBal:     0.00,
+		AccountBal:    req.AccountBal,
+		LedgerBal:     req.LedgerBal,
 		Currency:      req.Currency,
 		ID:            ID,
 		WalletType:    req.WalletType,
 		UserId:        req.UserId,
 		Memo:          req.Memo,
 		Name:          req.Name,
-		TermID:        "1",
-		Status:        true,
+		Status:        req.Status,
 		DateCreated:   time.Now().Format(time.RFC3339),
 		DateBalUpdate: time.Now().Format(time.RFC3339),
 		LastUpdate:    time.Now().Format(time.RFC3339),
@@ -66,4 +65,12 @@ func (f *flairsWalletServer) AddNewWallet(ctx context.Context, req *v1.NewWallet
 	return &v1.AddWalletResponse{
 		ID: ID,
 	}, nil
+}
+
+func (f *flairsWalletServer) AddWalletTerm(ctx context.Context, req *v1.NewWalletTermRequest) (*v1.AddWalletTermResponse, error) {
+	return nil, nil
+}
+
+func (f *flairsWalletServer) AddWalletType(ctx context.Context, req *v1.NewWalletTypeRequest) (*v1.AddWalletTypeResponse, error) {
+	return nil, nil
 }

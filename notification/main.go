@@ -152,18 +152,20 @@ func ProcessEvents(eventListener events.EventListener) error {
 				helper.SendMail(msg, os.Getenv("AlphaAdmin"), os.Getenv("SendGridKey"))
 				fmt.Println("got here")
 			case *events.CreateDefWallet:
-				// get request URL
 				reqURL, _ := url.Parse(e.URL)
 
 				// create request body
 				bodyContent := fmt.Sprintf(
 					`{
 					"name":"default",
-					"memo":"default wallet",
-					"userID":"userid"
-					}`,"")
-				
-			
+					"memo":"default flairs wallet",
+					"userId":"` +  e.UserID + `",
+					"walletType": 211,
+					"currency": "NG",
+					"accountBal":0.00,
+					"ledgerBal":0.00,
+					"status":"active"
+					}`, "userid")
 
 				reqBody := ioutil.NopCloser(strings.NewReader(bodyContent))
 
