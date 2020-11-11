@@ -58,6 +58,14 @@ message Wallet{
     string lastUpdate = 13;
 }
 
+message WalletsResponse{
+    repeated Wallet wallets = 3;
+}
+
+message getMyWalletsRequest{
+     string userId = 3;
+}
+
 message WalletTerms{
     int32 ID=1;
     string name=3;
@@ -107,12 +115,21 @@ message addWalletTermResponse{
 }
 
 
+
+
 service WalletService{
        // Create a new wallet
        rpc AddNewWallet (newWalletRequest) returns (addWalletResponse){
         option (google.api.http)={
             post: "/v1/wallet"
             body:"*"
+        };
+    }
+
+       // Get wallets beloging to a particular user 
+       rpc GetMyWallets (getMyWalletsRequest) returns (WalletsResponse){
+        option (google.api.http)={
+            get: "/v1/wallet/{userId}"
         };
     }
 

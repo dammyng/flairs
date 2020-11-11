@@ -61,6 +61,44 @@
         ]
       }
     },
+    "/v1/wallet/{userId}": {
+      "get": {
+        "summary": "Get wallets beloging to a particular user",
+        "operationId": "WalletService_GetMyWallets",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1WalletsResponse"
+            }
+          },
+          "404": {
+            "description": "Returned when the resource does not exist.",
+            "schema": {
+              "type": "string",
+              "format": "string"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/runtimeError"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "userId",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "WalletService"
+        ]
+      }
+    },
     "/v1/wallet_term": {
       "post": {
         "summary": "Create a new wallet terms",
@@ -175,6 +213,61 @@
           "type": "array",
           "items": {
             "$ref": "#/definitions/protobufAny"
+          }
+        }
+      }
+    },
+    "v1Wallet": {
+      "type": "object",
+      "properties": {
+        "ID": {
+          "type": "string"
+        },
+        "userId": {
+          "type": "string"
+        },
+        "accountBal": {
+          "type": "number",
+          "format": "float"
+        },
+        "ledgerBal": {
+          "type": "number",
+          "format": "float"
+        },
+        "walletType": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "memo": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "status": {
+          "type": "string"
+        },
+        "currency": {
+          "type": "string"
+        },
+        "dateCreated": {
+          "type": "string"
+        },
+        "dateBalUpdate": {
+          "type": "string"
+        },
+        "lastUpdate": {
+          "type": "string"
+        }
+      }
+    },
+    "v1WalletsResponse": {
+      "type": "object",
+      "properties": {
+        "wallets": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/v1Wallet"
           }
         }
       }

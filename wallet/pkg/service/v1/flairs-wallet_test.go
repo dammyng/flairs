@@ -6,9 +6,14 @@ import (
 	"log"
 	"os"
 	"testing"
+	"time"
 	v1internals "wallet/internals/v1"
 	"wallet/libs/setup"
 	v1 "wallet/pkg/api/v1"
+
+	"google.golang.org/grpc/metadata"
+
+	"github.com/dgrijalva/jwt-go"
 	_ "github.com/go-sql-driver/mysql"
 
 	"github.com/jinzhu/gorm"
@@ -39,7 +44,7 @@ func initDB() {
 	testDb.Exec(setup.SQLMode)
 }
 
-func TestCreateWallet_ok(t *testing.T)  {
+func TestCreateWallet_ok(t *testing.T) {
 	clearWalletTable()
 	ctx := context.Background()
 	sqlLayer := v1internals.NewMysqlLayer(testDb)
@@ -47,10 +52,10 @@ func TestCreateWallet_ok(t *testing.T)  {
 
 	rq := &v1.NewWalletRequest{
 		AccountBal: 0.00,
-		Currency: "1",
-		LedgerBal: 0.00,
-		Memo: "This is a test wallet",
-		Name: "Test wallet",
+		Currency:   "1",
+		LedgerBal:  0.00,
+		Memo:       "This is a test wallet",
+		Name:       "Test wallet",
 		WalletType: 101,
 	}
 	got, err := s.AddNewWallet(ctx, rq)
@@ -62,13 +67,59 @@ func TestCreateWallet_ok(t *testing.T)  {
 	var w v1.Wallet
 	testDb.Last(&w)
 
-	if w.ID != got.ID{
+	if w.ID != got.ID {
 		t.Errorf("flairWalletServer.CreateWallet_ok() = %v, want %v", got.ID, w.ID)
 
 	}
 
 }
 
+func TestGetMyWallet_ok(t *testing.T) {
+	clearWalletTable()
+	ctx := context.Background()
+	sqlLayer := v1internals.NewMysqlLayer(testDb)
+	s := NewflairsWalletServer(sqlLayer)
+
+	expirationTime := time.Now().Add(24 * 60 * time.Minute)
+
+	claims := &Claims{
+		UserID: "usered",
+		StandardClaims: jwt.StandardClaims{
+			ExpiresAt: expirationTime.Unix(),
+		},
+	}
+
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
+	tokenString, err := token.SignedString([]byte("secrek_key"))
+
+	rq := &v1.NewWalletRequest{
+		AccountBal: 0.00,
+		Currency:   "1",
+		LedgerBal:  0.00,
+		Memo:       "This is a test wallet",
+		Name:       "Test wallet",
+		WalletType: 101,
+		UserId:     "usered",
+	}
+
+	md := metadata.Pairs("authorization", tokenString)
+	ctx = metadata.NewIncomingContext(ctx, md)
+
+	_, err = s.AddNewWallet(ctx, rq)
+	if err != nil {
+		t.Errorf("flairWalletServer.TestGetMyWallet_ok() failed because user could not be created with error  %v", err)
+		return
+	}
+
+	got, err := s.GetMyWallets(ctx, &v1.GetMyWalletsRequest{UserId: "usered"})
+	if err != nil {
+		t.Errorf("flairWalletServer.TestGetMyWallet_ok() failed because user could not Get user got wallets returned error   %v", err)
+		return
+	}
+	if got.Wallets[0].UserId != "usered" {
+		t.Errorf("flairWalletServer.TestGetMyWallet_ok() error = %v, wantErr %v", got.Wallets[0].UserId, "usered")
+	}
+}
 
 func clearWalletTable() {
 	testDb.Exec(setup.ClearWalletTable)

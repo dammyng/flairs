@@ -273,9 +273,24 @@ func (f *flairsServiceServer) ValidateUserEmail(ctx context.Context, req *v1.Val
 		redis.Int(f.RedisConn.Do("HDEL", "email:verification", req.Email))
 
 		// Token - Send token to email with Rabbit
+
+		
+	expirationTime := time.Now().Add(24 * 60 * time.Minute)
+
+	claims := &Claims{
+		UserID: user.ID,
+		StandardClaims: jwt.StandardClaims{
+			ExpiresAt: expirationTime.Unix(),
+		},
+	}
+
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
+	tokenString, err := token.SignedString([]byte("secrek_key"))
+
 		msg := events.CreateDefWallet{
 			URL:    "http://localhost:9000/v1/wallet",
 			UserID: user.ID,
+			Token: tokenString,
 		}
 		f.EventEmitter.Emit(&msg, "auth")
 	} else {

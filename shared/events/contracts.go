@@ -30,6 +30,7 @@ type OTPCreated struct {
 type CreateDefWallet struct {
 	URL  string `json:"host"`
 	UserID  string `json:"userId"`
+	Token  string `json:"token"`
 }
 
 func (e *UserCreatedEvent) EventName() string {

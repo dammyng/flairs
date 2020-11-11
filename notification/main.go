@@ -173,7 +173,8 @@ func ProcessEvents(eventListener events.EventListener) error {
 					Method: "POST",
 					URL:    reqURL,
 					Header: map[string][]string{
-						"Content-Type": {"application/json; charset=UTF-8"},
+						"Content-Type": {"application/json; charset=UTF-8"},					
+						"Authorization": {e.Token},
 					},
 					Body: reqBody,
 				}
