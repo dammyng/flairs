@@ -45,12 +45,38 @@ option (grpc.gateway.protoc_gen_swagger.options.openapiv2_swagger) = {
 
 message Transaction{
     string ID =1;
-    string initiatedID = 2;
-    int32 classId =3;
     string amount = 4;
     string memo=5;
     string dateCreated = 9;
     string walletId =8;
+    enum type {
+        EXPENSE =0;
+        INCOME=1;
+    };
+    enum class {
+        Fund =0;
+        Transfer=1;
+    };
+}
+
+
+message newTransactionReq{
+    string amount = 4;
+    string memo=5;
+    string dateCreated = 9;
+    string walletId =8;
+    enum type {
+        EXPENSE =0;
+        INCOME=1;
+    };
+    enum class {
+        Fund =0;
+        Transfer=1;
+    };
+}
+
+message newTransactionRes{
+    string ID = 4;
 }
 
 message TransactionClass{
@@ -65,4 +91,11 @@ message TransactionClass{
 
 service FlairsService{
 
+         // Create a new transaction
+         rpc AddNewWallet (newTransactionReq) returns (newTransactionRes){
+            option (google.api.http)={
+                post: "/v1/transaction"
+                body:"*"
+            };
+        }
 }
