@@ -20,7 +20,48 @@
   "produces": [
     "application/json"
   ],
-  "paths": {},
+  "paths": {
+    "/v1/transaction": {
+      "post": {
+        "summary": "Create a new transaction",
+        "operationId": "FlairsTransactionService_AddnewTransaction",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1newTransactionRes"
+            }
+          },
+          "404": {
+            "description": "Returned when the resource does not exist.",
+            "schema": {
+              "type": "string",
+              "format": "string"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/runtimeError"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v1newTransactionReq"
+            }
+          }
+        ],
+        "tags": [
+          "FlairsTransactionService"
+        ]
+      }
+    }
+  },
   "definitions": {
     "protobufAny": {
       "type": "object",
@@ -55,6 +96,22 @@
           "items": {
             "$ref": "#/definitions/protobufAny"
           }
+        }
+      }
+    },
+    "v1newTransactionReq": {
+      "type": "object",
+      "properties": {
+        "t_ID": {
+          "type": "string"
+        }
+      }
+    },
+    "v1newTransactionRes": {
+      "type": "object",
+      "properties": {
+        "ID": {
+          "type": "string"
         }
       }
     }

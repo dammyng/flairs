@@ -47,8 +47,19 @@ message Transaction{
     string ID =1;
     string amount = 4;
     string memo=5;
+    string message = 12;
     string dateCreated = 9;
     string walletId =8;
+    string status =2;
+    string currency =6;
+    string txRef =3;
+    string flwRef=7;
+    string customer=10;
+    string customerId=11;
+    string paymentType = 13;
+    string createdAt= 14;
+    string cardLastFourDigit= 15;
+    string cardType= 16;
     enum type {
         EXPENSE =0;
         INCOME=1;
@@ -61,18 +72,7 @@ message Transaction{
 
 
 message newTransactionReq{
-    string amount = 4;
-    string memo=5;
-    string dateCreated = 9;
-    string walletId =8;
-    enum type {
-        EXPENSE =0;
-        INCOME=1;
-    };
-    enum class {
-        Fund =0;
-        Transfer=1;
-    };
+    string t_ID = 4;
 }
 
 message newTransactionRes{
@@ -89,10 +89,10 @@ message TransactionClass{
 }
 
 
-service FlairsService{
+service FlairsTransactionService{
 
          // Create a new transaction
-         rpc AddNewWallet (newTransactionReq) returns (newTransactionRes){
+         rpc AddnewTransaction (newTransactionReq) returns (newTransactionRes){
             option (google.api.http)={
                 post: "/v1/transaction"
                 body:"*"
