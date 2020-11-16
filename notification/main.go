@@ -43,7 +43,7 @@ func main() {
 }
 
 func ProcessEvents(eventListener events.EventListener) error {
-	received, errors, err := eventListener.Listen("auth", "user.created", "user.defaultwallet")
+	received, errors, err := eventListener.Listen("auth", "user.created", "user.defaultwallet", "user.creditwallet", "user.debitwallet")
 	if err != nil {
 		log.Fatalf("event listenner error")
 	}
@@ -172,6 +172,32 @@ func ProcessEvents(eventListener events.EventListener) error {
 				req := &http.Request{
 					Method: "POST",
 					URL:    reqURL,
+					Header: map[string][]string{
+						"Content-Type": {"application/json; charset=UTF-8"},					
+						"Authorization": {e.Token},
+					},
+					Body: reqBody,
+				}
+				helper.HttpReq(req)
+			case *events.CreditWallet:
+				// create request body
+				bodyContent := fmt.Sprintf(
+					`{
+					"name":"default",
+					"memo":"default flairs wallet",
+					"userId":"` +  e.UserID + `",
+					"walletID:"` +e.WalletID+ `",
+					"currency": "NG",
+					"accountBal":0.00,
+					"ledgerBal":0.00,
+					"status":"active"
+					}`, "userid")
+
+				reqBody := ioutil.NopCloser(strings.NewReader(bodyContent))
+
+				req := &http.Request{
+					Method: "POST",
+					URL:    "http://localhost:9000/v1/wallet/transact/" + e.WalletID,
 					Header: map[string][]string{
 						"Content-Type": {"application/json; charset=UTF-8"},					
 						"Authorization": {e.Token},

@@ -121,6 +121,23 @@ func TestGetMyWallet_ok(t *testing.T) {
 	}
 }
 
+func TestTransact_ok(t *testing.T) {
+	//clearWalletTable()
+	ctx := context.Background()
+	sqlLayer := v1internals.NewMysqlLayer(testDb)
+	s := NewflairsWalletServer(sqlLayer)
+
+	// createThe wallet
+	testDb.Save(v1.Wallet{
+		AccountBal: 0.00,}
+	)
+	// create perform transact req
+
+	// Perform Transact
+
+	// Test response
+}
+
 func clearWalletTable() {
 	testDb.Exec(setup.ClearWalletTable)
 }

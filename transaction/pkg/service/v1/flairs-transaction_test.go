@@ -9,26 +9,43 @@ import (
 	v1internals "transaction/internals/v1"
 	"transaction/libs/setup"
 	v1 "transaction/pkg/api/v1"
+
 	_ "github.com/go-sql-driver/mysql"
+	"github.com/streadway/amqp"
 
 	"github.com/jinzhu/gorm"
+	e_amqp "shared/events/amqp"
+
 )
 
 var testDb *gorm.DB
-
+var testEmitter e_amqp.EventEmitter
 
 func TestMain(m *testing.M) {
 	initDB()
+	initAMQP()
 	code := m.Run()
 	os.Exit(code)
 }
 
 
+func initAMQP() {
+	conn, err := amqp.Dial("amqp://guest:guest@localhost:5672/")
+	if err != nil {
+		log.Fatal("could not establish amqp connection :" + err.Error())
+	}
+
+	testEmitter, err = e_amqp.NewAMQPEventEmitter(conn, "auth")
+	if err != nil {
+		log.Fatal("could not establish amqp connection :" + err.Error())
+	}
+}
+
 func TestAddnewTransaction_ok(t *testing.T) {
 	clearTransactionTable()
 	ctx := context.Background()
 	sqlLayer := v1internals.NewMysqlLayer(testDb)
-	s := NewflairsTransactionServer(sqlLayer)
+	s := NewflairsTransactionServer(sqlLayer, testEmitter)
 
 	rq := &v1.NewTransactionReq{
 		T_ID: "1695241",

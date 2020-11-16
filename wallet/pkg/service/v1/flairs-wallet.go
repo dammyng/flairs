@@ -140,3 +140,7 @@ func (f *flairsWalletServer) GetMyWallets(ctx context.Context, req *v1.GetMyWall
 		// Response
 	return &ws, nil
 }
+
+func (f *flairsWalletServer) Transact(ctx context.Context, req *v1.PerformTransactionReq) (*v1.PerformTransactionRes, error) {
+	return nil, nil
+}

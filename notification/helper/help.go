@@ -54,6 +54,6 @@ func HttpReq(req *http.Request) {
 res.Body.Close()
 
 	// print response status and body
-	log.Println("status: %d\n", res.StatusCode)
-	log.Println("body: %s\n", string(data))
+	log.Printf("status: %d\n", res.StatusCode)
+	log.Printf("body: %s\n", string(data))
 }

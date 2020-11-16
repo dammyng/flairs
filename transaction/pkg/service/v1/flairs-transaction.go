@@ -8,10 +8,10 @@ import (
 	"net/http"
 	"net/url"
 	"os"
-	v1internals "transaction/internals/v1"
-	v1 "transaction/pkg/api/v1"
 	"shared/events"
 	amqp "shared/events/amqp"
+	v1internals "transaction/internals/v1"
+	v1 "transaction/pkg/api/v1"
 
 	"github.com/dgrijalva/jwt-go"
 )
@@ -21,9 +21,8 @@ const (
 )
 
 type flairsTransactionServer struct {
-	Db v1internals.DatabaseHandler
+	Db           v1internals.DatabaseHandler
 	EventEmitter amqp.EventEmitter
-
 }
 
 // Claims jwt custom authentication claims
@@ -33,7 +32,7 @@ type Claims struct {
 }
 
 // NewflairsTransactionServer creates ToDo service
-func NewflairsTransactionServer(db v1internals.DatabaseHandler,eventEmitter amqp.EventEmitter) v1.FlairsTransactionServiceServer {
+func NewflairsTransactionServer(db v1internals.DatabaseHandler, eventEmitter amqp.EventEmitter) v1.FlairsTransactionServiceServer {
 	return &flairsTransactionServer{Db: db,
 		EventEmitter: eventEmitter,
 	}
@@ -68,8 +67,11 @@ func (f *flairsTransactionServer) AddnewTransaction(ctx context.Context, req *v1
 	}
 	HttpReq(flutterReq)
 
+	Amount := 0.01
+
 	msg := events.CreditWallet{
-		URL: "http://localhost:9000/v1/wallet/transact/" + req.WalletID,
+		WalletID: req.WalletID, 
+		Amount: Amount,
 		//	UserID: user.ID,
 		//	Token: tokenString,
 	}

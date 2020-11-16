@@ -35,14 +35,17 @@ type CreateDefWallet struct {
 
 type CreditWallet struct {
 	URL  string `json:"host"`
-	Amount  float64 `json:"userId"`
-	WalletID  string `json:"token"`
+	Amount  float64 `json:"amount"`
+	WalletID  string `json:"walletId"`
+	Token  string `json:"token"`
+
 }
 
 type DebitWallet struct {
 	URL  string `json:"host"`
-	Amount  float64 `json:"userId"`
-	WalletID  string `json:"token"`
+	Amount  float64 `json:"amount"`
+	WalletID  string `json:"walletId"`
+	Token  string `json:"token"`
 }
 
 func (e *UserCreatedEvent) EventName() string {
