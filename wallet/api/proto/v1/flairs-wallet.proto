@@ -58,12 +58,30 @@ message Wallet{
     string lastUpdate = 13;
 }
 
+
+message getOneWalletRes{
+    float accountBal = 10;
+    float ledgerBal = 12;
+    int32 walletType = 6;
+    string memo = 8;
+    string name = 7;
+    string status = 3;
+    string currency = 9;
+    string dateCreated = 11;
+    string dateBalUpdate = 4;
+    string lastUpdate = 13;
+}
+
 message WalletsResponse{
     repeated Wallet wallets = 3;
 }
 
 message getMyWalletsRequest{
      string userId = 3;
+}
+
+message getOneWalletReq{
+    string walletId = 3;
 }
 
 message WalletTerms{
@@ -149,6 +167,12 @@ service WalletService{
         };
     }
 
+     // Get wallet using the walletID
+     rpc GetOneWallet (getOneWalletReq) returns (getOneWalletRes){
+        option (google.api.http)={
+            get: "/v1/wallet/{walletId}"
+        };
+    }
         // Create a new wallet terms
         rpc AddWalletTerm (newWalletTermRequest) returns (addWalletTermResponse){
             option (google.api.http)={

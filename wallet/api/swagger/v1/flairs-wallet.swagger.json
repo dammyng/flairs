@@ -145,6 +145,44 @@
         ]
       }
     },
+    "/v1/wallet/{walletId}": {
+      "get": {
+        "summary": "Get wallet using the walletID",
+        "operationId": "WalletService_GetOneWallet",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1getOneWalletRes"
+            }
+          },
+          "404": {
+            "description": "Returned when the resource does not exist.",
+            "schema": {
+              "type": "string",
+              "format": "string"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/runtimeError"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "walletId",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "WalletService"
+        ]
+      }
+    },
     "/v1/wallet_term": {
       "post": {
         "summary": "Create a new wallet terms",
@@ -338,6 +376,44 @@
       "type": "object",
       "properties": {
         "ID": {
+          "type": "string"
+        }
+      }
+    },
+    "v1getOneWalletRes": {
+      "type": "object",
+      "properties": {
+        "accountBal": {
+          "type": "number",
+          "format": "float"
+        },
+        "ledgerBal": {
+          "type": "number",
+          "format": "float"
+        },
+        "walletType": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "memo": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "status": {
+          "type": "string"
+        },
+        "currency": {
+          "type": "string"
+        },
+        "dateCreated": {
+          "type": "string"
+        },
+        "dateBalUpdate": {
+          "type": "string"
+        },
+        "lastUpdate": {
           "type": "string"
         }
       }

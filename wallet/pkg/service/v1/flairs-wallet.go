@@ -1,15 +1,16 @@
 package v1
 
 import (
-	"google.golang.org/grpc/metadata"
 	"context"
-	"github.com/dgrijalva/jwt-go"
-	uuid "github.com/satori/go.uuid"
-	"google.golang.org/grpc/codes"
-	"google.golang.org/grpc/status"
 	"time"
 	v1internals "wallet/internals/v1"
 	v1 "wallet/pkg/api/v1"
+
+	"github.com/dgrijalva/jwt-go"
+	uuid "github.com/satori/go.uuid"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/metadata"
+	"google.golang.org/grpc/status"
 )
 
 const (
@@ -101,6 +102,10 @@ func (f *flairsWalletServer) AddWalletType(ctx context.Context, req *v1.NewWalle
 	return nil, nil
 }
 
+func (f *flairsWalletServer) GetOneWallet(ctx context.Context, req *v1.GetOneWalletReq) (*v1.GetOneWalletRes, error) {
+	return nil, nil
+}
+
 func (f *flairsWalletServer) GetMyWallets(ctx context.Context, req *v1.GetMyWalletsRequest) (*v1.WalletsResponse, error) {
 
 	md, ok := metadata.FromIncomingContext(ctx)
@@ -113,6 +118,7 @@ func (f *flairsWalletServer) GetMyWallets(ctx context.Context, req *v1.GetMyWall
 	}
 
 	claims := &Claims{}
+
 	err := DecodeJwt(authorization, claims)
 
 	if err != nil {
@@ -137,10 +143,26 @@ func (f *flairsWalletServer) GetMyWallets(ctx context.Context, req *v1.GetMyWall
 	for _, v := range _ws {
 		ws.Wallets = append(ws.Wallets, &v)
 	}
-		// Response
+	// Response
 	return &ws, nil
 }
 
 func (f *flairsWalletServer) Transact(ctx context.Context, req *v1.PerformTransactionReq) (*v1.PerformTransactionRes, error) {
-	return nil, nil
+
+	// Get wallet
+	w, err := f.Db.GetWallet(&v1.GetOneWalletReq{WalletId: req.WalletID})
+	if err != nil {
+		return nil, status.Errorf(codes.NotFound, "Wallet not found")
+	}
+	// update the balance
+	newBal := w.AccountBal + req.Amount
+	// gorm save
+	err = f.Db.UpdateWallet(&w, &v1.Wallet{AccountBal: newBal})
+	// return wallet ID,
+	if err != nil {
+		return nil, status.Errorf(codes.Internal, "Unable to complete")
+	}
+	return &v1.PerformTransactionRes{
+		ID: req.WalletID,
+	}, nil
 }

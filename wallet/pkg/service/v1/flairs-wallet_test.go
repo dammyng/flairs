@@ -122,20 +122,36 @@ func TestGetMyWallet_ok(t *testing.T) {
 }
 
 func TestTransact_ok(t *testing.T) {
-	//clearWalletTable()
+	clearWalletTable()
 	ctx := context.Background()
 	sqlLayer := v1internals.NewMysqlLayer(testDb)
 	s := NewflairsWalletServer(sqlLayer)
 
 	// createThe wallet
 	testDb.Save(v1.Wallet{
-		AccountBal: 0.00,}
-	)
+		AccountBal: 0.00, 
+		UserId:"userID", 
+		ID:"xxxx-id",
+	})
 	// create perform transact req
-
+	 req:= &v1.PerformTransactionReq{
+		 Amount:-99.10,
+		 WalletID: "xxxx-id",
+	 }
 	// Perform Transact
-
+	 _, err :=s.Transact(ctx, req)
 	// Test response
+	if err != nil {
+		t.Errorf("flairWalletServer. TestTransact_ok() failed because user could not Get user got wallets returned error   %v", err)
+		return
+	}
+	var w v1.Wallet
+	testDb.Last(&w)
+
+	if w.AccountBal != -99.10{
+		t.Errorf("flairWalletServer. TestTransact_ok() failed account balance failed to sum up, expected 100 got  %v", w.AccountBal)
+		return
+	}
 }
 
 func clearWalletTable() {
