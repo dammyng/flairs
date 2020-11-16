@@ -115,6 +115,14 @@ message addWalletTermResponse{
 }
 
 
+message performTransactionReq{
+        string walletID = 2;
+        float amount=1;
+}
+
+message performTransactionRes{
+    string ID = 2;
+}
 
 
 service WalletService{
@@ -122,6 +130,14 @@ service WalletService{
        rpc AddNewWallet (newWalletRequest) returns (addWalletResponse){
         option (google.api.http)={
             post: "/v1/wallet"
+            body:"*"
+        };
+    }
+
+      // Perform a debit or credit
+      rpc Transact (performTransactionReq) returns (performTransactionRes){
+        option (google.api.http)={
+            post: "/v1/wallet/transact/{walletID}"
             body:"*"
         };
     }

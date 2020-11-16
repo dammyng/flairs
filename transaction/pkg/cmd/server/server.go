@@ -1,17 +1,20 @@
 package cmd
 
 import (
+	"log"
+	v1internals "transaction/internals/v1"
 	"transaction/libs/setup"
 	"transaction/pkg/protocol/grpc"
 	"transaction/pkg/protocol/rest"
 	v1 "transaction/pkg/service/v1"
-	v1internals "transaction/internals/v1"
 
 	"context"
 	"fmt"
 	"os"
+	e_amqp "shared/events/amqp"
 
 	_ "github.com/go-sql-driver/mysql"
+	"github.com/streadway/amqp"
 
 	"github.com/jinzhu/gorm"
 )
@@ -34,8 +37,6 @@ type Config struct {
 	DatastoreDBSchema string
 }
 
-
-
 // RunServer runs gRPC server and HTTP gateway
 func RunServer() error {
 	ctx := context.Background()
@@ -53,16 +54,13 @@ func RunServer() error {
 		return fmt.Errorf("invalid TCP port for gRPC server: '%s'", cfg.GRPCPort)
 	}
 
-	
 	if len(cfg.HTTPPort) == 0 {
 		return fmt.Errorf("invalid TCP port for HTTP gateway: '%s'", cfg.HTTPPort)
 	}
 
-
 	// add MySQL driver specific parameter to parse date/time
 	// Drop it for another database
 	param := "charset=utf8&parseTime=True&loc=Local"
-
 
 	dsn := fmt.Sprintf("%s:%s@tcp(%s)/%s?%s",
 		cfg.DatastoreDBUser,
@@ -77,11 +75,19 @@ func RunServer() error {
 	db.Exec(setup.SQLMode)
 	sqlLayer := v1internals.NewMysqlLayer(db)
 
-
 	defer db.Close()
 
+	conn, err := amqp.Dial(os.Getenv("AMQP_URL"))
+	if err != nil {
+		log.Fatal("could not establish amqp connection :" + err.Error())
+	}
 
-	v1API := v1.NewflairsTransactionServer(sqlLayer)
+	eventEmitter, err := e_amqp.NewAMQPEventEmitter(conn, "auth")
+	if err != nil {
+		log.Fatal("could not establish amqp connection :" + err.Error())
+	}
+
+	v1API := v1.NewflairsTransactionServer(sqlLayer, eventEmitter)
 
 	// run HTTP gateway
 	go func() {

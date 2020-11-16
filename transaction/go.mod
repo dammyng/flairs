@@ -1,5 +1,7 @@
 module transaction
 
+replace shared => ../shared
+
 go 1.14
 
 require (
@@ -12,4 +14,5 @@ require (
 	google.golang.org/genproto v0.0.0-20200526211855-cb27e3aa2013
 	google.golang.org/grpc v1.33.2
 	google.golang.org/protobuf v1.25.0
+	shared v0.0.0-00010101000000-000000000000
 )

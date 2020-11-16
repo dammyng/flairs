@@ -48,7 +48,6 @@ message Transaction{
     string amount = 4;
     string memo=5;
     string message = 12;
-    string dateCreated = 9;
     string walletId =8;
     string status =2;
     string currency =6;
@@ -58,6 +57,8 @@ message Transaction{
     string customerId=11;
     string paymentType = 13;
     string createdAt= 14;
+    string deletedAt= 17;
+    string updatedAt= 9;
     string cardLastFourDigit= 15;
     string cardType= 16;
     enum type {
@@ -73,21 +74,21 @@ message Transaction{
 
 message newTransactionReq{
     string t_ID = 4;
+    string walletID = 1;
 }
 
 message newTransactionRes{
     string ID = 4;
 }
 
-message TransactionClass{
-    string ID = 1;
-    string name =2;
-    enum accountType {
-        EXPENSE =0;
-        INCOME=1;
-    };
+
+message getMyTransactionsRequest{
+    string userId = 3;
 }
 
+message TransactionsResponse{
+    repeated Transaction transactions = 3;
+}
 
 service FlairsTransactionService{
 
@@ -98,4 +99,11 @@ service FlairsTransactionService{
                 body:"*"
             };
         }
+
+         // Get wallets beloging to a particular user 
+       rpc GetMyTransactions (getMyTransactionsRequest) returns (TransactionsResponse){
+        option (google.api.http)={
+            get: "/v1/transaction/{userId}"
+        };
+    }
 }

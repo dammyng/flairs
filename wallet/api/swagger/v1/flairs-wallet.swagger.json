@@ -61,6 +61,52 @@
         ]
       }
     },
+    "/v1/wallet/transact/{walletID}": {
+      "post": {
+        "summary": "Perform a debit or credit",
+        "operationId": "WalletService_Transact",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1performTransactionRes"
+            }
+          },
+          "404": {
+            "description": "Returned when the resource does not exist.",
+            "schema": {
+              "type": "string",
+              "format": "string"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/runtimeError"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "walletID",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v1performTransactionReq"
+            }
+          }
+        ],
+        "tags": [
+          "WalletService"
+        ]
+      }
+    },
     "/v1/wallet/{userId}": {
       "get": {
         "summary": "Get wallets beloging to a particular user",
@@ -350,6 +396,26 @@
           "type": "string"
         },
         "description": {
+          "type": "string"
+        }
+      }
+    },
+    "v1performTransactionReq": {
+      "type": "object",
+      "properties": {
+        "walletID": {
+          "type": "string"
+        },
+        "amount": {
+          "type": "number",
+          "format": "float"
+        }
+      }
+    },
+    "v1performTransactionRes": {
+      "type": "object",
+      "properties": {
+        "ID": {
           "type": "string"
         }
       }

@@ -60,6 +60,44 @@
           "FlairsTransactionService"
         ]
       }
+    },
+    "/v1/transaction/{userId}": {
+      "get": {
+        "summary": "Get wallets beloging to a particular user",
+        "operationId": "FlairsTransactionService_GetMyTransactions",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1TransactionsResponse"
+            }
+          },
+          "404": {
+            "description": "Returned when the resource does not exist.",
+            "schema": {
+              "type": "string",
+              "format": "string"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/runtimeError"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "userId",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "FlairsTransactionService"
+        ]
+      }
     }
   },
   "definitions": {
@@ -99,10 +137,80 @@
         }
       }
     },
+    "v1Transaction": {
+      "type": "object",
+      "properties": {
+        "ID": {
+          "type": "string"
+        },
+        "amount": {
+          "type": "string"
+        },
+        "memo": {
+          "type": "string"
+        },
+        "message": {
+          "type": "string"
+        },
+        "walletId": {
+          "type": "string"
+        },
+        "status": {
+          "type": "string"
+        },
+        "currency": {
+          "type": "string"
+        },
+        "txRef": {
+          "type": "string"
+        },
+        "flwRef": {
+          "type": "string"
+        },
+        "customer": {
+          "type": "string"
+        },
+        "customerId": {
+          "type": "string"
+        },
+        "paymentType": {
+          "type": "string"
+        },
+        "createdAt": {
+          "type": "string"
+        },
+        "deletedAt": {
+          "type": "string"
+        },
+        "updatedAt": {
+          "type": "string"
+        },
+        "cardLastFourDigit": {
+          "type": "string"
+        },
+        "cardType": {
+          "type": "string"
+        }
+      }
+    },
+    "v1TransactionsResponse": {
+      "type": "object",
+      "properties": {
+        "transactions": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/v1Transaction"
+          }
+        }
+      }
+    },
     "v1newTransactionReq": {
       "type": "object",
       "properties": {
         "t_ID": {
+          "type": "string"
+        },
+        "walletID": {
           "type": "string"
         }
       }

@@ -90,6 +90,10 @@ func (a *amqpEventListener) Listen(exchange string, eventnames ...string) (<-cha
 				event = new(events.WelcomeUserEvent)
 			case "user.defaultwallet":
 				event = new(events.CreateDefWallet)
+			case "user.debitwallet":
+				event = new(events.DebitWallet)
+			case "user.creditwallet":
+				event = new(events.CreditWallet)
 			default:
 				errors <- fmt.Errorf("event type %s i unknown", eventName)
 				continue

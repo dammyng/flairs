@@ -33,6 +33,18 @@ type CreateDefWallet struct {
 	Token  string `json:"token"`
 }
 
+type CreditWallet struct {
+	URL  string `json:"host"`
+	Amount  float64 `json:"userId"`
+	WalletID  string `json:"token"`
+}
+
+type DebitWallet struct {
+	URL  string `json:"host"`
+	Amount  float64 `json:"userId"`
+	WalletID  string `json:"token"`
+}
+
 func (e *UserCreatedEvent) EventName() string {
 	return "user.created"
 }
@@ -50,4 +62,11 @@ func (e *WelcomeUserEvent) EventName() string {
 
 func (e *CreateDefWallet) EventName() string {
 	return "user.defaultwallet"
+}
+
+func (e *CreditWallet) EventName() string {
+	return "user.creditwallet"
+}
+func (e *DebitWallet) EventName() string {
+	return "user.debitwallet"
 }
