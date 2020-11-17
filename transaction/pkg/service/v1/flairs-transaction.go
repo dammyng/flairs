@@ -14,6 +14,9 @@ import (
 	v1 "transaction/pkg/api/v1"
 
 	"github.com/dgrijalva/jwt-go"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/metadata"
+	"google.golang.org/grpc/status"
 )
 
 const (
@@ -47,7 +50,32 @@ func DecodeJwt(token string, claims *Claims) error {
 }
 
 func (f *flairsTransactionServer) AddnewTransaction(ctx context.Context, req *v1.NewTransactionReq) (*v1.NewTransactionRes, error) {
-	log.Println(req.T_ID)
+
+	md, ok := metadata.FromIncomingContext(ctx)
+	if !ok {
+		return nil, status.Errorf(codes.DataLoss, "failed to get metadata")
+	}
+	authorization := md.Get("Authorization")[0]
+	if authorization == "" {
+		return nil, status.Error(codes.Unauthenticated, "Invalid authorization token ")
+	}
+
+	claims := &Claims{}
+
+	err := DecodeJwt(authorization, claims)
+
+	if err != nil {
+		if err == jwt.ErrSignatureInvalid {
+			return nil, status.Errorf(codes.Unauthenticated, "Invalid token")
+
+		}
+		return nil, status.Errorf(codes.Unauthenticated, "Token inaccessible")
+	}
+
+	if req.UserId != claims.UserID {
+		return nil, status.Error(codes.Unauthenticated, "Error fetching user record ")
+	}
+
 	reqURL, _ := url.Parse(fmt.Sprintf("https://api.flutterwave.com/v3/transactions/%v/verify", req.T_ID))
 	//reqURL, _ := url.Parse(fmt.Sprintf("https://api.flutterwave.com/v3/transactions/%v/verify", req.T_ID))
 
@@ -65,19 +93,22 @@ func (f *flairsTransactionServer) AddnewTransaction(ctx context.Context, req *v1
 		},
 		//Body: reqBody,
 	}
-	HttpReq(flutterReq)
+	body, err := HttpReq(flutterReq)
+	if err != nil {
+		return nil, err
+	}
 
 	Amount := 0.01
 
 	msg := events.CreditWallet{
-		WalletID: req.WalletID, 
-		Amount: Amount,
-		//	UserID: user.ID,
-		//	Token: tokenString,
+		WalletID: req.WalletID,
+		Amount:   Amount,
 	}
 	f.EventEmitter.Emit(&msg, "auth")
 
-	return nil, nil
+	return &v1.NewTransactionRes{
+		ID: string(body[2]),
+	}, nil
 }
 
 func (f *flairsTransactionServer) GetMyTransactions(ctx context.Context, req *v1.GetMyTransactionsRequest) (*v1.TransactionsResponse, error) {
@@ -96,7 +127,7 @@ func (f *flairsTransactionServer) GetMyTransactions(ctx context.Context, req *v1
 //--header 'Content-Type: application/json' \
 //--header 'Authorization: Bearer {{SEC_KEY}}'
 
-func HttpReq(req *http.Request) {
+func HttpReq(req *http.Request) ([]byte, error) {
 
 	// send an HTTP request using `req` object
 	res, err := http.DefaultClient.Do(req)
@@ -114,4 +145,5 @@ func HttpReq(req *http.Request) {
 	// print response status and body
 	log.Printf("status: %d\n", res.StatusCode)
 	log.Printf("body: %s\n", string(data))
+	return data, err
 }

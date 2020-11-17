@@ -180,24 +180,16 @@ func ProcessEvents(eventListener events.EventListener) error {
 				}
 				helper.HttpReq(req)
 			case *events.CreditWallet:
+				reqURL, _ := url.Parse(fmt.Sprintf("http://localhost:9000/v1/wallet/transact/%v" ,e.WalletID))
+
 				// create request body
-				bodyContent := fmt.Sprintf(
-					`{
-					"name":"default",
-					"memo":"default flairs wallet",
-					"userId":"` +  e.UserID + `",
-					"walletID:"` +e.WalletID+ `",
-					"currency": "NG",
-					"accountBal":0.00,
-					"ledgerBal":0.00,
-					"status":"active"
-					}`, "userid")
+				bodyContent := fmt.Sprintf("{\"amount\":%v}", e.Amount)
 
 				reqBody := ioutil.NopCloser(strings.NewReader(bodyContent))
 
 				req := &http.Request{
 					Method: "POST",
-					URL:    "http://localhost:9000/v1/wallet/transact/" + e.WalletID,
+					URL:    reqURL,
 					Header: map[string][]string{
 						"Content-Type": {"application/json; charset=UTF-8"},					
 						"Authorization": {e.Token},

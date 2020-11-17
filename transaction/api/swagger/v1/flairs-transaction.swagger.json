@@ -212,6 +212,9 @@
         },
         "walletID": {
           "type": "string"
+        },
+        "userId": {
+          "type": "string"
         }
       }
     },

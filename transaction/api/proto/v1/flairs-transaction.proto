@@ -75,6 +75,7 @@ message Transaction{
 message newTransactionReq{
     string t_ID = 4;
     string walletID = 1;
+    string userId = 3;
 }
 
 message newTransactionRes{
