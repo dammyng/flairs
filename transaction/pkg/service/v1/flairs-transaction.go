@@ -2,8 +2,9 @@ package v1
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
-	"io/ioutil"
+	//"io/ioutil"
 	"log"
 	"net/http"
 	"net/url"
@@ -76,39 +77,75 @@ func (f *flairsTransactionServer) AddnewTransaction(ctx context.Context, req *v1
 		return nil, status.Error(codes.Unauthenticated, "Error fetching user record ")
 	}
 
-	reqURL, _ := url.Parse(fmt.Sprintf("https://api.flutterwave.com/v3/transactions/%v/verify", req.T_ID))
-	//reqURL, _ := url.Parse(fmt.Sprintf("https://api.flutterwave.com/v3/transactions/%v/verify", req.T_ID))
+	switch req.TransactionType {
+	case 0:
+		reqURL, _ := url.Parse(fmt.Sprintf("https://api.flutterwave.com/v3/transactions/%v/verify", req.T_ID))
+		flutterReq := &http.Request{
+			Method: "GET",
+			URL:    reqURL,
+			Header: map[string][]string{
+				"Content-Type":  {"application/json; charset=UTF-8"},
+				"Authorization": {"Bearer " + os.Getenv("FlutterSecret")},
+			},
+			//Body: reqBody,
+		}
+		res, err := HttpReq(flutterReq)
+		if err != nil {
+			return nil, err
+		}
+		if res.StatusCode > 299 {
+			return nil, err
+		}
+		var result map[string]string
+		json.NewDecoder(res.Body).Decode(result)
+		// close response body
+		res.Body.Close()
+		Amount := 0.01
 
-	// create request body
-	//bodyContent := fmt.Sprintf(``)
+		msg := events.CreditWallet{
+			WalletID: req.WalletID,
+			Amount:   Amount,
+		}
+		f.EventEmitter.Emit(&msg, "auth")
 
-	//reqBody := ioutil.NopCloser(strings.NewReader(bodyContent))
+		return &v1.NewTransactionRes{
+			ID: string(result["status"]),
+		}, nil
 
-	flutterReq := &http.Request{
-		Method: "GET",
-		URL:    reqURL,
-		Header: map[string][]string{
-			"Content-Type":  {"application/json; charset=UTF-8"},
-			"Authorization": {"Bearer " + os.Getenv("FlutterSecret")},
-		},
-		//Body: reqBody,
+	case 1:
+		sReqURL, _ := url.Parse(fmt.Sprintf("http://localhost:9000/v1/wallet/%v", req.WalletID))
+
+		sender := &http.Request{
+			Method: "GET",
+			URL:    sReqURL,
+			Header: map[string][]string{
+				"Content-Type":  {"application/json; charset=UTF-8"},
+				"Authorization": {authorization},
+			},
+		}
+		res, err := HttpReq(sender)
+		if err != nil {
+			return nil, status.Errorf(codes.NotFound, "Invalid Argument")
+		}
+
+		var result map[string]interface{}
+		json.NewDecoder(res.Body).Decode(&result)
+		// close response body
+		res.Body.Close()
+		bal := result["accountBal"]
+		log.Println(result)
+		//bal, ok := result["AccountBal"]
+		//if !ok {
+		//	//return
+		//}
+		if bal.(float64) <= req.Amount {
+			return nil, status.Error(codes.InvalidArgument, "Low balance")
+		}
+
+		return nil, nil
 	}
-	body, err := HttpReq(flutterReq)
-	if err != nil {
-		return nil, err
-	}
+	return nil, status.Error(codes.InvalidArgument, "Invalid transaction type")
 
-	Amount := 0.01
-
-	msg := events.CreditWallet{
-		WalletID: req.WalletID,
-		Amount:   Amount,
-	}
-	f.EventEmitter.Emit(&msg, "auth")
-
-	return &v1.NewTransactionRes{
-		ID: string(body[2]),
-	}, nil
 }
 
 func (f *flairsTransactionServer) GetMyTransactions(ctx context.Context, req *v1.GetMyTransactionsRequest) (*v1.TransactionsResponse, error) {
@@ -127,7 +164,7 @@ func (f *flairsTransactionServer) GetMyTransactions(ctx context.Context, req *v1
 //--header 'Content-Type: application/json' \
 //--header 'Authorization: Bearer {{SEC_KEY}}'
 
-func HttpReq(req *http.Request) ([]byte, error) {
+func HttpReq(req *http.Request) (*http.Response, error) {
 
 	// send an HTTP request using `req` object
 	res, err := http.DefaultClient.Do(req)
@@ -135,8 +172,10 @@ func HttpReq(req *http.Request) ([]byte, error) {
 	// check for response error
 	if err != nil {
 		log.Fatal("Error:", err)
+		return nil, err
 	}
-	// read response body
+	return res, err
+	/** read response body
 	data, _ := ioutil.ReadAll(res.Body)
 
 	// close response body
@@ -146,4 +185,5 @@ func HttpReq(req *http.Request) ([]byte, error) {
 	log.Printf("status: %d\n", res.StatusCode)
 	log.Printf("body: %s\n", string(data))
 	return data, err
+	**/
 }

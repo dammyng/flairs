@@ -213,10 +213,28 @@
         "walletID": {
           "type": "string"
         },
+        "toID": {
+          "type": "string"
+        },
         "userId": {
           "type": "string"
+        },
+        "amount": {
+          "type": "number",
+          "format": "double"
+        },
+        "transactionType": {
+          "$ref": "#/definitions/v1newTransactionReqclass"
         }
       }
+    },
+    "v1newTransactionReqclass": {
+      "type": "string",
+      "enum": [
+        "Fund",
+        "Transfer"
+      ],
+      "default": "Fund"
     },
     "v1newTransactionRes": {
       "type": "object",

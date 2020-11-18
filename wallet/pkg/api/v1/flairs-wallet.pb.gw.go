@@ -626,7 +626,7 @@ var (
 
 	pattern_WalletService_Transact_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 1, 0, 4, 1, 5, 3}, []string{"v1", "wallet", "transact", "walletID"}, "", runtime.AssumeColonVerbOpt(true)))
 
-	pattern_WalletService_GetMyWallets_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 1, 0, 4, 1, 5, 2}, []string{"v1", "wallet", "userId"}, "", runtime.AssumeColonVerbOpt(true)))
+	pattern_WalletService_GetMyWallets_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 1, 0, 4, 1, 5, 2}, []string{"v1", "wallets", "userId"}, "", runtime.AssumeColonVerbOpt(true)))
 
 	pattern_WalletService_GetOneWallet_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 1, 0, 4, 1, 5, 2}, []string{"v1", "wallet", "walletId"}, "", runtime.AssumeColonVerbOpt(true)))
 

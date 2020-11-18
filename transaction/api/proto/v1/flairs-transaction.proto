@@ -75,7 +75,15 @@ message Transaction{
 message newTransactionReq{
     string t_ID = 4;
     string walletID = 1;
+    string toID = 7;
     string userId = 3;
+    double amount = 6;
+    enum class {
+        Fund =0;
+        Transfer=1;
+    };
+    class transactionType = 5;
+
 }
 
 message newTransactionRes{

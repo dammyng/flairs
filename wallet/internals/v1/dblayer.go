@@ -27,7 +27,7 @@ func (db *MysqlLayer) CreateWallet(arg *v1.Wallet) error {
 func (db *MysqlLayer) GetWallet(arg *v1.GetOneWalletReq) (v1.Wallet, error) {
 	var w v1.Wallet
 
-	if db.Session.First(&w).Where("id = ? ", arg.WalletId).RecordNotFound() {
+	if db.Session.Where(&v1.Wallet{ID: arg.WalletId}).First(&w).RecordNotFound() {
 		return w, gorm.ErrRecordNotFound
 	}
 	return w, nil

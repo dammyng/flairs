@@ -103,7 +103,22 @@ func (f *flairsWalletServer) AddWalletType(ctx context.Context, req *v1.NewWalle
 }
 
 func (f *flairsWalletServer) GetOneWallet(ctx context.Context, req *v1.GetOneWalletReq) (*v1.GetOneWalletRes, error) {
-	return nil, nil
+	w, err := f.Db.GetWallet(&v1.GetOneWalletReq{WalletId: req.WalletId})
+	if err != nil {
+		return nil, status.Errorf(codes.NotFound, "Wallet not found")
+	}
+	return &v1.GetOneWalletRes{
+		AccountBal: w.AccountBal,
+		Currency: w.Currency,
+		DateBalUpdate: w.DateBalUpdate,
+		DateCreated: w.DateCreated,
+		LastUpdate: w.LastUpdate,
+		LedgerBal: w.LedgerBal,
+		Memo: w.Memo,
+		Name: w.Name,
+		Status: w.Status,
+		WalletType: w.WalletType,
+	}, nil
 }
 
 func (f *flairsWalletServer) GetMyWallets(ctx context.Context, req *v1.GetMyWalletsRequest) (*v1.WalletsResponse, error) {

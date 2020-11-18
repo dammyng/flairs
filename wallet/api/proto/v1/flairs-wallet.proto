@@ -106,7 +106,6 @@ message newWalletRequest{
     string status=1;
     float accountBal = 10;
     float ledgerBal = 12;
-
 }
 
 message addWalletResponse{
@@ -163,7 +162,7 @@ service WalletService{
        // Get wallets beloging to a particular user 
        rpc GetMyWallets (getMyWalletsRequest) returns (WalletsResponse){
         option (google.api.http)={
-            get: "/v1/wallet/{userId}"
+            get: "/v1/wallets/{userId}"
         };
     }
 

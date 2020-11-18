@@ -107,44 +107,6 @@
         ]
       }
     },
-    "/v1/wallet/{userId}": {
-      "get": {
-        "summary": "Get wallets beloging to a particular user",
-        "operationId": "WalletService_GetMyWallets",
-        "responses": {
-          "200": {
-            "description": "A successful response.",
-            "schema": {
-              "$ref": "#/definitions/v1WalletsResponse"
-            }
-          },
-          "404": {
-            "description": "Returned when the resource does not exist.",
-            "schema": {
-              "type": "string",
-              "format": "string"
-            }
-          },
-          "default": {
-            "description": "An unexpected error response.",
-            "schema": {
-              "$ref": "#/definitions/runtimeError"
-            }
-          }
-        },
-        "parameters": [
-          {
-            "name": "userId",
-            "in": "path",
-            "required": true,
-            "type": "string"
-          }
-        ],
-        "tags": [
-          "WalletService"
-        ]
-      }
-    },
     "/v1/wallet/{walletId}": {
       "get": {
         "summary": "Get wallet using the walletID",
@@ -256,6 +218,44 @@
             "schema": {
               "$ref": "#/definitions/v1newWalletTypeRequest"
             }
+          }
+        ],
+        "tags": [
+          "WalletService"
+        ]
+      }
+    },
+    "/v1/wallets/{userId}": {
+      "get": {
+        "summary": "Get wallets beloging to a particular user",
+        "operationId": "WalletService_GetMyWallets",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1WalletsResponse"
+            }
+          },
+          "404": {
+            "description": "Returned when the resource does not exist.",
+            "schema": {
+              "type": "string",
+              "format": "string"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/runtimeError"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "userId",
+            "in": "path",
+            "required": true,
+            "type": "string"
           }
         ],
         "tags": [
