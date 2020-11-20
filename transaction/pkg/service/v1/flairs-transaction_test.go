@@ -67,7 +67,7 @@ func TestAddnewTransaction_ok_case0(t *testing.T) {
 	tokenString, err := token.SignedString([]byte("secrek_key"))
 
 	rq := &v1.NewTransactionReq{
-		T_ID: "1695241", UserId: "usered",
+		ThirdPartyID: "1695241", UserId: "usered",
 	}
 	os.Setenv("FlutterSecret", "FLWSECK_TEST-be6475503d295c1be0b10ee8e971671f-X")
 	md := metadata.Pairs("authorization", tokenString)
@@ -80,10 +80,10 @@ func TestAddnewTransaction_ok_case0(t *testing.T) {
 	}
 
 	var w v1.Transaction
-	testDb.Last(&w)
+	testDb.First(&w)
 
 	if w.ID != got.ID {
-		t.Errorf("flairWalletServer.AddnewTransaction_ok() = %v, want %v", got.ID, w.ID)
+		t.Errorf("flairWalletServer.AddnewTransaction_ok() got  = %v, wanted %v", got.ID, w)
 	}
 }
 
@@ -131,7 +131,7 @@ func TestAddnewTransaction_ok_case1(t *testing.T) {
 	res.Body.Close()
 	wID := result["ID"]
 	rq := &v1.NewTransactionReq{
-		T_ID: "1695241", UserId: "usered", TransactionType: 1, Amount: 200, WalletID: wID.(string),
+		ThirdPartyID: "1695241", UserId: "usered", TransactionType: 1, Amount: 200, FromID: wID.(string),
 	}
 	md := metadata.Pairs("authorization", tokenString)
 	ctx = metadata.NewIncomingContext(ctx, md)
@@ -159,11 +159,11 @@ func initDB() {
 	}
 	testDb.Exec(setup.DropDB)
 	testDb.Exec(setup.CreateDatabase)
-	testDb.Exec(setup.UseAlphaWallet)
-	testDb.Exec(setup.CreateWalletTable)
+	testDb.Exec(setup.UseAlphaTransaction)
+	testDb.Exec(setup.CreateTransactionTable)
 	testDb.Exec(setup.SQLMode)
 }
 
 func clearTransactionTable() {
-	testDb.Exec(setup.ClearWalletTable)
+	testDb.Exec(setup.ClearTransactionTable)
 }

@@ -4,6 +4,8 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"time"
+
 	//"io/ioutil"
 	"log"
 	"net/http"
@@ -15,6 +17,7 @@ import (
 	v1 "transaction/pkg/api/v1"
 
 	"github.com/dgrijalva/jwt-go"
+	uuid "github.com/satori/go.uuid"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/metadata"
 	"google.golang.org/grpc/status"
@@ -76,10 +79,20 @@ func (f *flairsTransactionServer) AddnewTransaction(ctx context.Context, req *v1
 	if req.UserId != claims.UserID {
 		return nil, status.Error(codes.Unauthenticated, "Error fetching user record ")
 	}
+	ID := uuid.NewV4().String()
+
+	var newT = v1.Transaction{
+		ID:         ID,
+		CustomerId: req.UserId,
+		Memo:       req.UserMemo,
+		CreatedAt:  time.Now().Format(time.RFC3339),
+		UpdatedAt:  time.Now().Format(time.RFC3339),
+		Currency:   "",
+	}
 
 	switch req.TransactionType {
 	case 0:
-		reqURL, _ := url.Parse(fmt.Sprintf("https://api.flutterwave.com/v3/transactions/%v/verify", req.T_ID))
+		reqURL, _ := url.Parse(fmt.Sprintf("https://api.flutterwave.com/v3/transactions/%v/verify", req.ThirdPartyID))
 		flutterReq := &http.Request{
 			Method: "GET",
 			URL:    reqURL,
@@ -96,24 +109,43 @@ func (f *flairsTransactionServer) AddnewTransaction(ctx context.Context, req *v1
 		if res.StatusCode > 299 {
 			return nil, err
 		}
-		var result map[string]string
-		json.NewDecoder(res.Body).Decode(result)
+		var result map[string]interface{}
+		json.NewDecoder(res.Body).Decode(&result)
 		// close response body
 		res.Body.Close()
 		Amount := 0.01
+		info := result["data"].(map[string]interface{})
+		card := info["card"].(map[string]interface{})
+		customer := info["customer"].(map[string]interface{})
+		log.Println(info)
 
 		msg := events.CreditWallet{
-			WalletID: req.WalletID,
+			WalletID: req.FromID,
 			Amount:   Amount,
 		}
 		f.EventEmitter.Emit(&msg, "auth")
-
+		newT.Amount = fmt.Sprintf("%v", info["amount"].(float64)) 
+		newT.CardLastFourDigit = card["last_4digits"].(string)
+		newT.CardType = card["type"].(string)
+		newT.Currency = info["currency"].(string)
+		newT.FlwRef = info["currency"].(string)
+		newT.Message = req.InnerMemo
+		newT.PaymentType = info["payment_type"].(string)
+		newT.TransType = 2
+		newT.Customer  = customer["email"].(string)
+		newT.Status = info["status"].(string)
+		newT.TxRef = info["tx_ref"].(string)
+		newT.WalletId = req.FromID
+		err = f.Db.CreateTransaction(&newT)
+		if err != nil {
+			return nil, status.Errorf(codes.InvalidArgument, "Invalid Argument")
+		}
 		return &v1.NewTransactionRes{
-			ID: string(result["status"]),
+			ID: result["status"].(string),
 		}, nil
 
 	case 1:
-		sReqURL, _ := url.Parse(fmt.Sprintf("http://localhost:9000/v1/wallet/%v", req.WalletID))
+		sReqURL, _ := url.Parse(fmt.Sprintf("http://localhost:9000/v1/wallet/%v", req.FromID))
 
 		sender := &http.Request{
 			Method: "GET",
@@ -141,8 +173,21 @@ func (f *flairsTransactionServer) AddnewTransaction(ctx context.Context, req *v1
 		if bal.(float64) <= req.Amount {
 			return nil, status.Error(codes.InvalidArgument, "Low balance")
 		}
+		msg1 := events.CreditWallet{
+			WalletID: req.FromID,
+			Amount:   -req.Amount,
+		}
+		msg2 := events.CreditWallet{
+			WalletID: req.ToID,
+			Amount:   req.Amount,
+		}
+		f.EventEmitter.Emit(&msg1, "auth")
+		f.EventEmitter.Emit(&msg2, "auth")
+		//amt := fmt.Sprintf("%f", req.Amount)
 
-		return nil, nil
+		return &v1.NewTransactionRes{
+			ID: "xxx-id",
+		}, nil
 	}
 	return nil, status.Error(codes.InvalidArgument, "Invalid transaction type")
 

@@ -61,6 +61,8 @@ message Transaction{
     string updatedAt= 9;
     string cardLastFourDigit= 15;
     string cardType= 16;
+    string thirdPartyID = 20;
+    string source = 21;
     enum type {
         EXPENSE =0;
         INCOME=1;
@@ -69,12 +71,17 @@ message Transaction{
         Fund =0;
         Transfer=1;
     };
+    type transType = 19;
+
 }
 
 
 message newTransactionReq{
-    string t_ID = 4;
-    string walletID = 1;
+    string thirdPartyID = 4;
+    string source = 8;
+    string userMemo = 2;
+    string innerMemo = 9;
+    string fromID = 1;
     string toID = 7;
     string userId = 3;
     double amount = 6;
@@ -82,6 +89,7 @@ message newTransactionReq{
         Fund =0;
         Transfer=1;
     };
+    
     class transactionType = 5;
 
 }

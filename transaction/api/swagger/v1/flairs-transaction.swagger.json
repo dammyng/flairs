@@ -101,6 +101,14 @@
     }
   },
   "definitions": {
+    "Transactiontype": {
+      "type": "string",
+      "enum": [
+        "EXPENSE",
+        "INCOME"
+      ],
+      "default": "EXPENSE"
+    },
     "protobufAny": {
       "type": "object",
       "properties": {
@@ -190,6 +198,15 @@
         },
         "cardType": {
           "type": "string"
+        },
+        "thirdPartyID": {
+          "type": "string"
+        },
+        "source": {
+          "type": "string"
+        },
+        "transType": {
+          "$ref": "#/definitions/Transactiontype"
         }
       }
     },
@@ -207,10 +224,19 @@
     "v1newTransactionReq": {
       "type": "object",
       "properties": {
-        "t_ID": {
+        "thirdPartyID": {
           "type": "string"
         },
-        "walletID": {
+        "source": {
+          "type": "string"
+        },
+        "userMemo": {
+          "type": "string"
+        },
+        "innerMemo": {
+          "type": "string"
+        },
+        "fromID": {
           "type": "string"
         },
         "toID": {
