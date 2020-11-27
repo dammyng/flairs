@@ -8,6 +8,7 @@ import (
 
 	"github.com/joho/godotenv"
 )
+
 func loadEnv() {
 	log.Println("env loading...")
 	err := godotenv.Load(".env")

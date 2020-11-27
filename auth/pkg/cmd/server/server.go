@@ -64,11 +64,9 @@ func RunServer() error {
 	}
 
 
-	// add MySQL driver specific parameter to parse date/time
+	// Add MySQL driver specific parameter to parse date/time
 	// Drop it for another database
 	param := "charset=utf8&parseTime=True&loc=Local"
-
-
 	dsn := fmt.Sprintf("%s:%s@tcp(%s)/%s?%s",
 		cfg.DatastoreDBUser,
 		cfg.DatastoreDBPassword,
@@ -90,6 +88,7 @@ func RunServer() error {
 	redisPool := redisconn.NewPool(os.Getenv("REDIS_URL"))
 	redisConn := redisPool.Get()
 
+	// amqp component
 	conn, err := amqp.Dial(os.Getenv("AMQP_URL"))
 	if err != nil {
 		log.Fatal("could not establish amqp connection :" + err.Error())
