@@ -4,7 +4,9 @@ import (
 	v1 "auth/pkg/api/v1"
 	v1helper "auth/pkg/helper/v1"
 	"context"
+	"encoding/hex"
 	"log"
+	"os"
 	"time"
 
 	"golang.org/x/crypto/bcrypt"
@@ -23,7 +25,7 @@ import (
 // AddNewUser initializes a new user with email address
 func (f *flairsServiceServer) AddNewUser(ctx context.Context, req *v1.AddNewUserRequest) (*v1.AddNewUserResponse, error) {
 	if !v1helper.IsEmailValid(req.Email) {
-		return nil, status.Error(codes.InvalidArgument, "Invalid entry")
+		return nil, status.Error(codes.InvalidArgument, "Invalid entry - Enter a valid email")
 	}
 
 	user := v1helper.DecodeToSQLUser(req)
@@ -34,8 +36,8 @@ func (f *flairsServiceServer) AddNewUser(ctx context.Context, req *v1.AddNewUser
 	}
 
 	// User ID
-	ID := uuid.NewV4().String()
-	user.ID = ID
+	ID := uuid.NewV4()
+	user.ID = ID.String()
 
 	// User Referrer
 	ref := req.Ref
@@ -50,12 +52,11 @@ func (f *flairsServiceServer) AddNewUser(ctx context.Context, req *v1.AddNewUser
 	// Database call
 	err := f.Db.CreateUser(user)
 	if err != nil {
-		return nil, status.Error(codes.Internal, "failed to insert into Users-> "+err.Error())
+		return nil, status.Error(codes.Internal, "Something went wrong"+err.Error())
 	}
 
 	// Token - Store token in redis cache
 	token := v1helper.RandInt(6)
-	log.Println(token)
 	_, err = f.RedisConn.Do("HMSET", "email:verification", user.Email, token)
 	if err != nil {
 		log.Fatal(err)
@@ -65,9 +66,16 @@ func (f *flairsServiceServer) AddNewUser(ctx context.Context, req *v1.AddNewUser
 		log.Fatal(err)
 	}
 
+	msg := events.UserCreatedEvent{
+		ID:    hex.EncodeToString(ID.Bytes()),
+		Email: user.Email,
+		Token: token,
+	}
+	f.EventEmitter.Emit(&msg, "auth")
+
 	// Response
 	return &v1.AddNewUserResponse{
-		ID: ID,
+		ID: ID.String(),
 	}, nil
 }
 
@@ -80,7 +88,7 @@ func (f *flairsServiceServer) LoginUser(ctx context.Context, req *v1.LoginReques
 	}
 
 	if user == nil && err != nil {
-		return nil, status.Error(codes.NotFound, "A Flairs account with this email does not exist exists.")
+		return nil, status.Error(codes.Internal, "Something went wrong verifying user.")
 	}
 	emailVerifiedAt := user.EmailVerifiedAt
 
@@ -90,7 +98,7 @@ func (f *flairsServiceServer) LoginUser(ctx context.Context, req *v1.LoginReques
 
 	err = bcrypt.CompareHashAndPassword(user.Password, []byte(req.Password))
 	if err != nil {
-		return nil, status.Error(codes.Internal, "Unverified email address")
+		return nil, status.Error(codes.Internal, "Something went wrong verifying user.")
 	}
 
 	expirationTime := time.Now().Add(24 * 60 * time.Minute)
@@ -103,15 +111,16 @@ func (f *flairsServiceServer) LoginUser(ctx context.Context, req *v1.LoginReques
 	}
 
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
-	tokenString, err := token.SignedString([]byte("secrek_key"))
+	tokenString, err := token.SignedString([]byte(os.Getenv("JWT_FLAIRS_KEY")))
 	if err != nil {
-		return nil, status.Error(codes.Internal, "Aist exists.")
+		return nil, status.Error(codes.Internal, "Something went wrong verifying user")
 	}
 
 	res := &v1.LoginResponse{
 		Token: tokenString,
 		User: &v1.Profile{
 			ID: user.ID,
+			Email: user.Email,
 		},
 	}
 
@@ -129,24 +138,32 @@ func (f *flairsServiceServer) ResetUserPassword(ctx context.Context, req *v1.Res
 		return nil, status.Error(codes.NotFound, "Error fetching user record "+err.Error())
 	}
 
-	emailVerfiedAt := user.EmailVerifiedAt
-	if emailVerfiedAt.IsZero() {
-		return nil, status.Error(codes.NotFound, "Error fetching user record "+err.Error())
+	emailVerifiedAt := user.EmailVerifiedAt
+	if emailVerifiedAt.IsZero() {
+		return nil, status.Error(codes.NotFound, "You cannot reset password for unverified user account"+err.Error())
 	}
 
 	token := v1helper.RandInt(6)
 	_, err = f.RedisConn.Do("HMSET", "password:reset", user.Email, token)
 
-	//
 	//Rabbit send the mail
+	id := uuid.NewV4()
+	//fmt.Println("sending reset event")
+	msg := events.PasswordReset{
+		ID: hex.EncodeToString(id.Bytes()),
+		Email: user.Email,
+		Token: token,
+	}
+
+	err = f.EventEmitter.Emit(&msg, "auth")
 
 	// TODO how to handle this error
 	if err != nil {
-		return nil, status.Error(codes.NotFound, "Error fetching user record "+err.Error())
+		return nil, status.Error(codes.NotFound, "Could not send mail to user"+err.Error())
 	}
 	return &v1.CustomResponse{
 		Message: "Successful",
-		Request: "Reset password",
+		Request: "Reset password mail sent",
 	}, nil
 }
 
@@ -274,23 +291,22 @@ func (f *flairsServiceServer) ValidateUserEmail(ctx context.Context, req *v1.Val
 
 		// Token - Send token to email with Rabbit
 
-		
-	expirationTime := time.Now().Add(24 * 60 * time.Minute)
+		expirationTime := time.Now().Add(24 * 60 * time.Minute)
 
-	claims := &Claims{
-		UserID: user.ID,
-		StandardClaims: jwt.StandardClaims{
-			ExpiresAt: expirationTime.Unix(),
-		},
-	}
+		claims := &Claims{
+			UserID: user.ID,
+			StandardClaims: jwt.StandardClaims{
+				ExpiresAt: expirationTime.Unix(),
+			},
+		}
 
-	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
-	tokenString, err := token.SignedString([]byte("secrek_key"))
+		token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
+		tokenString, err := token.SignedString([]byte("secrek_key"))
 
 		msg := events.CreateDefWallet{
 			URL:    "http://localhost:9000/v1/wallet",
 			UserID: user.ID,
-			Token: tokenString,
+			Token:  tokenString,
 		}
 		f.EventEmitter.Emit(&msg, "auth")
 	} else {

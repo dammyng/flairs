@@ -1,6 +1,7 @@
 package v1
 
 import (
+	"os"
 	v1internals "auth/internals/v1"
 	v1 "auth/pkg/api/v1"
 	"fmt"
