@@ -17,7 +17,9 @@ func loadEnv() {
 	}
 }
 func main() {
-	loadEnv()
+	if os.Getenv("APP_ENV") != "production" {
+		loadEnv()
+	}
 	if err := cmd.RunServer(); err != nil {
 		fmt.Fprintf(os.Stderr, "%v\n", err)
 		os.Exit(1)
