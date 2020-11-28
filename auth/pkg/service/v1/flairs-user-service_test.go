@@ -123,7 +123,7 @@ func TestAddUser_duplicate_email(t *testing.T) {
 	}
 }
 
-func TestAddUser_invalid_entry(t *testing.T) {
+func TestAddUser_invalid_entry_no_email(t *testing.T) {
 	clearUsersTable()
 	ctx := context.Background()
 	sqlLayer := v1internals.NewMysqlLayer(testDb)
@@ -140,8 +140,8 @@ func TestAddUser_invalid_entry(t *testing.T) {
 		return
 	}
 
-	if (err != nil) && err.Error() != status.Error(codes.InvalidArgument, "Invalid entry").Error() {
-		t.Errorf("flairServiceServer.AddNewUser() Wrong error! should return a internal error but got = %v,", err.Error())
+	if (err != nil) && err.Error() != status.Error(codes.InvalidArgument, "Invalid entry - Enter a valid email").Error() {
+		t.Errorf("flairServiceServer.AddNewUser() Wrong error! should return a Invalid Argument but got = %v,", err.Error())
 	}
 }
 
@@ -203,7 +203,7 @@ func TestVerifyEmail_ok(t *testing.T) {
 	}
 
 	want := &v1.CustomResponse{
-		Message: "Successfully verified email",
+		Message: "Successfully",
 		Request: "verify_email",
 	}
 
@@ -245,8 +245,8 @@ func TestVerifyEmail_wrongtoken(t *testing.T) {
 		t.Errorf("flairServiceServer.ValidateUserEmail( wrong token) is expected to return an error but got = %v", vGot.Message)
 	}
 
-	if err != nil && !reflect.DeepEqual(err.Error(), status.Error(codes.InvalidArgument, "Wrong token string").Error()) {
-		t.Errorf("flairServiceServer.ValidateUserEmail(wrong token) expected a wrong token error but returned = %v, want %v", err.Error(), status.Error(codes.InvalidArgument, "Wrong token string").Error())
+	if err != nil && !reflect.DeepEqual(err.Error(), status.Error(codes.InvalidArgument, "Invalid authentication token").Error()) {
+		t.Errorf("flairServiceServer.ValidateUserEmail(wrong token) expected a wrong token error but returned = %v, want %v", err.Error(), status.Error(codes.InvalidArgument, "Invalid authentication token").Error())
 	}
 
 }
@@ -295,8 +295,8 @@ func TestAddPassword_ok(t *testing.T) {
 	}
 
 	want := &v1.CustomResponse{
-		Message: "Successfully Add Password",
-		Request: "add_password",
+		Message: "Successfully",
+		Request: "set_password",
 	}
 
 	if err == nil && !reflect.DeepEqual(vGot, want) {

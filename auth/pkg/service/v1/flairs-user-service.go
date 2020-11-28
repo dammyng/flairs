@@ -22,6 +22,8 @@ import (
 	"google.golang.org/grpc/status"
 )
 
+
+
 // AddNewUser initializes a new user with email address
 func (f *flairsServiceServer) AddNewUser(ctx context.Context, req *v1.AddNewUserRequest) (*v1.AddNewUserResponse, error) {
 	if !v1helper.IsEmailValid(req.Email) {
@@ -119,7 +121,7 @@ func (f *flairsServiceServer) LoginUser(ctx context.Context, req *v1.LoginReques
 	res := &v1.LoginResponse{
 		Token: tokenString,
 		User: &v1.Profile{
-			ID: user.ID,
+			ID:    user.ID,
 			Email: user.Email,
 		},
 	}
@@ -150,7 +152,7 @@ func (f *flairsServiceServer) ResetUserPassword(ctx context.Context, req *v1.Res
 	id := uuid.NewV4()
 	//fmt.Println("sending reset event")
 	msg := events.PasswordReset{
-		ID: hex.EncodeToString(id.Bytes()),
+		ID:    hex.EncodeToString(id.Bytes()),
 		Email: user.Email,
 		Token: token,
 	}
@@ -163,29 +165,57 @@ func (f *flairsServiceServer) ResetUserPassword(ctx context.Context, req *v1.Res
 	}
 	return &v1.CustomResponse{
 		Message: "Successful",
-		Request: "Reset password mail sent",
+		Request: "Request_Password_Reset",
+	}, nil
+}
+
+func (f *flairsServiceServer) SendValidationMail(ctx context.Context, req *v1.SendValidationMailRequest) (*v1.CustomResponse, error) {
+	u := v1helper.DecodeToSQLUser(req)
+	user, err := f.Db.FindUser(u)
+	if err != nil {
+		return nil, status.Error(codes.NotFound, "Error fetching user record "+err.Error())
+	}
+	emailVerifiedAt := user.EmailVerifiedAt
+	if !emailVerifiedAt.IsZero() {
+		return nil, status.Error(codes.NotFound, "You cannot validate an already validated email "+err.Error())
+	}
+
+	token := v1helper.RandInt(6)
+	_, err = f.RedisConn.Do("HMSET", "email:verification", user.Email, token)
+
+	msg := events.UserCreatedEvent{
+		Email: user.Email,
+		Token: token,
+	}
+	err = f.EventEmitter.Emit(&msg, "auth")
+
+	// TODO how to handle this error
+	if err != nil {
+		return nil, status.Error(codes.NotFound, "Could not send mail to user"+err.Error())
+	}
+	return &v1.CustomResponse{
+		Message: "Successful",
+		Request: "Request_Email_Validation",
 	}, nil
 }
 
 func (f *flairsServiceServer) SetUserPassword(ctx context.Context, req *v1.SetPasswordRequest) (*v1.CustomResponse, error) {
 	u := v1helper.DecodeToSQLUser(req)
-
 	md, ok := metadata.FromIncomingContext(ctx)
-	log.Println(ok)
 	if !ok {
-		return nil, status.Errorf(codes.DataLoss, "failed to get metadata")
+		return nil, status.Errorf(codes.DataLoss, "failed to retrive authentication token")
 	}
 	authorization := md.Get("Authorization")[0]
 	if authorization == "" {
-		return nil, status.Error(codes.Unauthenticated, "Invalid authorization token ")
+		return nil, status.Error(codes.Unauthenticated, "Invalid authorization token")
 	}
 
 	token, err := redis.String(f.RedisConn.Do("HGET", "password:reset", req.Email))
 	if err != nil {
-		return nil, status.Error(codes.Internal, "Invalid token string "+err.Error())
+		return nil, status.Error(codes.Internal, "failed to retrive authentication token "+err.Error())
 	}
 	if token == "" {
-		return nil, status.Error(codes.InvalidArgument, "Invalid token string "+err.Error())
+		return nil, status.Error(codes.InvalidArgument, "Empty authentication token "+err.Error())
 	}
 
 	if match := token == authorization; match {
@@ -197,30 +227,29 @@ func (f *flairsServiceServer) SetUserPassword(ctx context.Context, req *v1.SetPa
 
 		hashedPass, err := bcrypt.GenerateFromPassword([]byte(req.Password), bcrypt.DefaultCost)
 		if err != nil {
-			return nil, status.Error(codes.Internal, "Service failed"+err.Error())
+			return nil, status.Error(codes.Internal, "Something went wrong"+err.Error())
 		}
 		err = f.Db.UpdateUser(u, &v1.User{Password: hashedPass})
 		if err != nil {
-			return nil, status.Error(codes.Internal, "Service failed"+err.Error())
+			return nil, status.Error(codes.Internal, "Something went wrong"+err.Error())
 		}
 		redis.Int(f.RedisConn.Do("HDEL", "password:reset", req.Email))
 		res := &v1.CustomResponse{
-			Message: "Successfully Add Password",
-			Request: "add_password",
+			Message: "Successfully",
+			Request: "set_password",
 		}
 
 		return res, nil
 	}
-	return nil, status.Error(codes.InvalidArgument, "Wrong token string")
-
+	return nil, status.Error(codes.InvalidArgument, "Invalid authorization token")
 }
 
 func (f *flairsServiceServer) UpdateUserProfile(ctx context.Context, req *v1.UpdateUserRequest) (*v1.UpdateUserResponse, error) {
-
 	u := v1helper.DecodeToSQLUser(req.Profile)
+
 	md, ok := metadata.FromIncomingContext(ctx)
 	if !ok {
-		return nil, status.Errorf(codes.DataLoss, "failed to get metadata")
+		return nil, status.Errorf(codes.DataLoss, "failed to retrive authentication token")
 	}
 	authorization := md.Get("Authorization")[0]
 	if authorization == "" {
@@ -232,10 +261,10 @@ func (f *flairsServiceServer) UpdateUserProfile(ctx context.Context, req *v1.Upd
 
 	if err != nil {
 		if err == jwt.ErrSignatureInvalid {
-			return nil, status.Errorf(codes.Unauthenticated, "Invalid token")
+			return nil, status.Errorf(codes.Unauthenticated, "Could not authenticate this request")
 
 		}
-		return nil, status.Errorf(codes.Unauthenticated, "Token inaccessible")
+		return nil, status.Errorf(codes.Unauthenticated, "Could not authenticate - Token inaccessible")
 	}
 	_, err = f.Db.FindUser(&v1.User{ID: req.Id})
 
@@ -244,7 +273,7 @@ func (f *flairsServiceServer) UpdateUserProfile(ctx context.Context, req *v1.Upd
 	}
 
 	if req.Id != claims.UserID {
-		return nil, status.Error(codes.Unauthenticated, "Error fetching user record ")
+		return nil, status.Error(codes.Unauthenticated, "Invalid authentication token")
 	}
 
 	uu := &v1.User{ID: req.Id}
@@ -254,7 +283,7 @@ func (f *flairsServiceServer) UpdateUserProfile(ctx context.Context, req *v1.Upd
 	err = f.Db.UpdateUser(uu, &v1.User{IsProfileCompleted: profileComplete})
 
 	if err != nil {
-		return nil, status.Error(codes.Internal, "Service failed"+err.Error())
+		return nil, status.Error(codes.Internal, "Something went wrong "+err.Error())
 	}
 	res := &v1.UpdateUserResponse{
 		Id: req.Id,
@@ -269,10 +298,10 @@ func (f *flairsServiceServer) ValidateUserEmail(ctx context.Context, req *v1.Val
 
 	token, err := redis.String(f.RedisConn.Do("HGET", "email:verification", req.Email))
 	if err != nil {
-		return nil, status.Error(codes.Internal, "Invalid token string "+err.Error())
+		return nil, status.Error(codes.Internal, "failed to retrive authentication token "+err.Error())
 	}
 	if token == "" {
-		return nil, status.Error(codes.InvalidArgument, "Invalid token string "+err.Error())
+		return nil, status.Error(codes.InvalidArgument, "Invalid authentication token "+err.Error())
 	}
 
 	if match := token == req.Token; match {
@@ -285,12 +314,13 @@ func (f *flairsServiceServer) ValidateUserEmail(ctx context.Context, req *v1.Val
 		err = f.Db.UpdateUser(u, &v1.User{EmailVerifiedAt: time.Now().Format(time.RFC3339)})
 
 		if err != nil {
-			return nil, status.Error(codes.Internal, "Invalid token string "+err.Error())
+			return nil, status.Error(codes.Internal, "Something went wrong "+err.Error())
 		}
 		redis.Int(f.RedisConn.Do("HDEL", "email:verification", req.Email))
 
-		// Token - Send token to email with Rabbit
 
+
+		// Token required to create default wallet once email is a validated
 		expirationTime := time.Now().Add(24 * 60 * time.Minute)
 
 		claims := &Claims{
@@ -301,20 +331,19 @@ func (f *flairsServiceServer) ValidateUserEmail(ctx context.Context, req *v1.Val
 		}
 
 		token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
-		tokenString, err := token.SignedString([]byte("secrek_key"))
+		tokenString, err := token.SignedString([]byte(os.Getenv("JWT_FLAIRS_KEY")))
 
 		msg := events.CreateDefWallet{
-			URL:    "http://localhost:9000/v1/wallet",
 			UserID: user.ID,
 			Token:  tokenString,
 		}
 		f.EventEmitter.Emit(&msg, "auth")
 	} else {
-		return nil, status.Error(codes.InvalidArgument, "Wrong token string")
+		return nil, status.Error(codes.InvalidArgument, "Invalid authentication token")
 	}
 
 	return &v1.CustomResponse{
-		Message: "Successfully verified email",
+		Message: "Successfully",
 		Request: "verify_email",
 	}, nil
 }

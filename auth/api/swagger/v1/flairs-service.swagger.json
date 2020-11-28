@@ -283,6 +283,46 @@
         ]
       }
     },
+    "/v1/account/validation/{email}": {
+      "get": {
+        "summary": "Request user validation email",
+        "operationId": "FlairsService_SendValidationMail",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1customResponse"
+            }
+          },
+          "404": {
+            "description": "Returned when the resource does not exist.",
+            "schema": {
+              "type": "string",
+              "format": "string"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/runtimeError"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "email",
+            "description": "Email of user to set password",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "FlairsService"
+        ],
+        "security": []
+      }
+    },
     "/v1/account/verify_email/{email}/{token}": {
       "get": {
         "summary": "Verify a new email address",
