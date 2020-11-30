@@ -1,8 +1,8 @@
 package helper
 
 import (
-	"io/ioutil"
 	"fmt"
+	"io/ioutil"
 	"log"
 	"net/http"
 
@@ -33,12 +33,10 @@ func SendMail(msg EmailMessage, sender, key string) {
 		fmt.Println(response.StatusCode)
 		fmt.Println(response.Body)
 		fmt.Println(response.Headers)
-
 	}
 }
 
 func HttpReq(req *http.Request) {
-
 
 	// send an HTTP request using `req` object
 	res, err := http.DefaultClient.Do(req)
@@ -51,7 +49,7 @@ func HttpReq(req *http.Request) {
 	data, _ := ioutil.ReadAll(res.Body)
 
 	// close response body
-res.Body.Close()
+	res.Body.Close()
 
 	// print response status and body
 	log.Printf("status: %d\n", res.StatusCode)
