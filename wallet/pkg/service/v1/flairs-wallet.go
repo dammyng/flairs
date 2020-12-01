@@ -13,9 +13,7 @@ import (
 	"google.golang.org/grpc/status"
 )
 
-const (
-	apiVersion = "v1"
-)
+
 
 type flairsWalletServer struct {
 	Db v1internals.DatabaseHandler
@@ -73,7 +71,7 @@ func (f *flairsWalletServer) AddNewWallet(ctx context.Context, req *v1.NewWallet
 		LedgerBal:     req.LedgerBal,
 		Currency:      req.Currency,
 		ID:            ID,
-		WalletType:    req.WalletType,
+		Type:   int32(req.Type),
 		UserId:        req.UserId,
 		Memo:          req.Memo,
 		Name:          req.Name,
@@ -102,7 +100,64 @@ func (f *flairsWalletServer) AddWalletType(ctx context.Context, req *v1.NewWalle
 	return nil, nil
 }
 
+func (f *flairsWalletServer) UpdateWallet(ctx context.Context, req *v1.UpdateWalletReq) (*v1.UpdateWalletRes, error) {
+
+	md, ok := metadata.FromIncomingContext(ctx)
+	if !ok {
+		return nil, status.Errorf(codes.DataLoss, "failed to get metadata")
+	}
+	authorization := md.Get("Authorization")[0]
+	if authorization == "" {
+		return nil, status.Error(codes.Unauthenticated, "Invalid authorization token ")
+	}
+
+	claims := &Claims{}
+
+	err := DecodeJwt(authorization, claims)
+
+	if err != nil {
+		if err == jwt.ErrSignatureInvalid {
+			return nil, status.Errorf(codes.Unauthenticated, "Invalid token")
+
+		}
+		return nil, status.Errorf(codes.Unauthenticated, "Token inaccessible")
+	}
+
+	if req.UserId != claims.UserID {
+		return nil, status.Error(codes.Unauthenticated, "Error fetching user record ")
+	}
+
+	return nil, nil
+}
+
 func (f *flairsWalletServer) GetOneWallet(ctx context.Context, req *v1.GetOneWalletReq) (*v1.GetOneWalletRes, error) {
+	
+
+	md, ok := metadata.FromIncomingContext(ctx)
+	if !ok {
+		return nil, status.Errorf(codes.DataLoss, "failed to get metadata")
+	}
+	authorization := md.Get("Authorization")[0]
+	if authorization == "" {
+		return nil, status.Error(codes.Unauthenticated, "Invalid authorization token ")
+	}
+
+	claims := &Claims{}
+
+	err := DecodeJwt(authorization, claims)
+
+	if err != nil {
+		if err == jwt.ErrSignatureInvalid {
+			return nil, status.Errorf(codes.Unauthenticated, "Invalid token")
+
+		}
+		return nil, status.Errorf(codes.Unauthenticated, "Token inaccessible")
+	}
+
+	if req.UserId != claims.UserID {
+		return nil, status.Error(codes.Unauthenticated, "Error fetching user record ")
+	}
+	
 	w, err := f.Db.GetWallet(&v1.GetOneWalletReq{WalletId: req.WalletId})
 	if err != nil {
 		return nil, status.Errorf(codes.NotFound, "Wallet not found")
@@ -117,7 +172,7 @@ func (f *flairsWalletServer) GetOneWallet(ctx context.Context, req *v1.GetOneWal
 		Memo: w.Memo,
 		Name: w.Name,
 		Status: w.Status,
-		WalletType: w.WalletType,
+		WalletType: w.Type,
 	}, nil
 }
 

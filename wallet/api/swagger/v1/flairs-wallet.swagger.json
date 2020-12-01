@@ -143,6 +143,50 @@
         "tags": [
           "WalletService"
         ]
+      },
+      "put": {
+        "summary": "Perform a debit or credit",
+        "operationId": "WalletService_UpdateWallet",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1updateWalletRes"
+            }
+          },
+          "404": {
+            "description": "Returned when the resource does not exist.",
+            "schema": {
+              "type": "string",
+              "format": "string"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/runtimeError"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "walletId",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v1updateWalletReq"
+            }
+          }
+        ],
+        "tags": [
+          "WalletService"
+        ]
       }
     },
     "/v1/wallet_term": {
@@ -265,6 +309,24 @@
     }
   },
   "definitions": {
+    "newWalletRequestaccessType": {
+      "type": "string",
+      "enum": [
+        "Open",
+        "Specific"
+      ],
+      "default": "Open"
+    },
+    "newWalletRequestwalletType": {
+      "type": "string",
+      "enum": [
+        "Default",
+        "Indulgent",
+        "savings",
+        "fixed"
+      ],
+      "default": "Default"
+    },
     "protobufAny": {
       "type": "object",
       "properties": {
@@ -318,9 +380,16 @@
           "type": "number",
           "format": "float"
         },
-        "walletType": {
+        "type": {
           "type": "integer",
           "format": "int32"
+        },
+        "access": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "accessDate": {
+          "type": "string"
         },
         "memo": {
           "type": "string"
@@ -342,6 +411,24 @@
         },
         "lastUpdate": {
           "type": "string"
+        }
+      }
+    },
+    "v1WalletUpdate": {
+      "type": "object",
+      "properties": {
+        "memo": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "status": {
+          "type": "string"
+        },
+        "access": {
+          "type": "integer",
+          "format": "int32"
         }
       }
     },
@@ -427,9 +514,11 @@
         "userId": {
           "type": "string"
         },
-        "walletType": {
-          "type": "integer",
-          "format": "int32"
+        "type": {
+          "$ref": "#/definitions/newWalletRequestwalletType"
+        },
+        "access": {
+          "$ref": "#/definitions/newWalletRequestaccessType"
         },
         "currency": {
           "type": "string"
@@ -492,6 +581,25 @@
       "type": "object",
       "properties": {
         "ID": {
+          "type": "string"
+        }
+      }
+    },
+    "v1updateWalletReq": {
+      "type": "object",
+      "properties": {
+        "walletId": {
+          "type": "string"
+        },
+        "wallet": {
+          "$ref": "#/definitions/v1WalletUpdate"
+        }
+      }
+    },
+    "v1updateWalletRes": {
+      "type": "object",
+      "properties": {
+        "walletId": {
           "type": "string"
         }
       }

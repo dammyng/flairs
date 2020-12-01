@@ -157,6 +157,11 @@ message addNewUserResponse{
     string ID = 2;
 }
 
+message welcomeRequest{
+    // ID of the created user
+    string email = 2;
+}
+
 message validateEmailRequest{    
     // Email of user to be validated
     string email = 2;
@@ -249,6 +254,16 @@ service FlairsService{
     rpc AddNewUser (addNewUserRequest) returns (addNewUserResponse){
         option (google.api.http)={
             get: "/v1/account/user/{email}"
+        };
+        option (grpc.gateway.protoc_gen_swagger.options.openapiv2_operation) = {
+            security: { } 
+        };
+    }
+
+      // Create a new user
+      rpc WelcomeUser (welcomeRequest) returns (customResponse){
+        option (google.api.http)={
+            get: "/v1/account/user/welcome/{email}"
         };
         option (grpc.gateway.protoc_gen_swagger.options.openapiv2_operation) = {
             security: { } 

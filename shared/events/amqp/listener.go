@@ -92,8 +92,8 @@ func (a *amqpEventListener) Listen(exchange string, eventnames ...string) (<-cha
 				event = new(events.CreateDefWallet)
 			case "user.debitwallet":
 				event = new(events.DebitWallet)
-			case "user.creditwallet":
-				event = new(events.CreditWallet)
+			case "user.transact":
+				event = new(events.PerformTransaction)
 			default:
 				errors <- fmt.Errorf("event type %s i unknown", eventName)
 				continue

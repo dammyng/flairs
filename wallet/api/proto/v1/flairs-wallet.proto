@@ -48,8 +48,10 @@ message Wallet{
     string userId = 2;
     float accountBal = 10;
     float ledgerBal = 12;
-    int32 walletType = 6;
-    string memo = 8;
+    int32 type = 6;
+    int32 access = 8;
+    string accessDate = 14;
+    string memo = 15;
     string name = 7;
     string status = 3;
     string currency = 9;
@@ -84,6 +86,20 @@ message getOneWalletReq{
     string walletId = 3;
 }
 
+message WalletUpdate{
+    string memo = 8;
+    string name = 7;
+    string status = 3;
+    int32 access = 1;
+}
+
+message updateWalletReq{
+    string walletId = 3;
+    WalletUpdate wallet = 1;
+}
+message updateWalletRes{
+    string walletId = 3;
+}
 message WalletTerms{
     int32 ID=1;
     string name=3;
@@ -100,7 +116,18 @@ message WalletType{
 message newWalletRequest{
     string name = 7;
     string userId = 2;
-    int32 walletType = 6;
+    enum walletType {
+        Default = 0;
+        Indulgent = 1;
+        savings = 3;
+        fixed = 2;
+    };
+    walletType type=6;
+    enum accessType {
+        Open = 0;
+        Specific = 1;
+    };
+    accessType access = 13;
     string currency = 9;
     string memo = 8;
     string status=1;
@@ -158,6 +185,16 @@ service WalletService{
             body:"*"
         };
     }
+
+          // Perform a debit or credit
+          rpc UpdateWallet (updateWalletReq) returns (updateWalletRes){
+            option (google.api.http)={
+                put: "/v1/wallet/{walletId}"
+                body:"*"
+            };
+        }
+
+        
 
        // Get wallets beloging to a particular user 
        rpc GetMyWallets (getMyWalletsRequest) returns (WalletsResponse){

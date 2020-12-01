@@ -28,24 +28,23 @@ type OTPCreated struct {
 }
 
 type CreateDefWallet struct {
-	URL  string `json:"host"`
-	UserID  string `json:"userId"`
+	URL    string `json:"host"`
+	UserID string `json:"userId"`
 	Token  string `json:"token"`
 }
 
-type CreditWallet struct {
-	URL  string `json:"host"`
-	Amount  float64 `json:"amount"`
-	WalletID  string `json:"walletId"`
-	Token  string `json:"token"`
-
+type PerformTransaction struct {
+	URL      string  `json:"host"`
+	Amount   float64 `json:"amount"`
+	WalletID string  `json:"walletId"`
+	Token    string  `json:"token"`
 }
 
 type DebitWallet struct {
-	URL  string `json:"host"`
-	Amount  float64 `json:"amount"`
-	WalletID  string `json:"walletId"`
-	Token  string `json:"token"`
+	URL      string  `json:"host"`
+	Amount   float64 `json:"amount"`
+	WalletID string  `json:"walletId"`
+	Token    string  `json:"token"`
 }
 
 func (e *UserCreatedEvent) EventName() string {
@@ -67,8 +66,8 @@ func (e *CreateDefWallet) EventName() string {
 	return "user.defaultwallet"
 }
 
-func (e *CreditWallet) EventName() string {
-	return "user.creditwallet"
+func (e *PerformTransaction) EventName() string {
+	return "user.PerformTransaction"
 }
 func (e *DebitWallet) EventName() string {
 	return "user.debitwallet"

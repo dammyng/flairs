@@ -189,6 +189,46 @@
         ]
       }
     },
+    "/v1/account/user/welcome/{email}": {
+      "get": {
+        "summary": "Create a new user",
+        "operationId": "FlairsService_WelcomeUser",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1customResponse"
+            }
+          },
+          "404": {
+            "description": "Returned when the resource does not exist.",
+            "schema": {
+              "type": "string",
+              "format": "string"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/runtimeError"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "email",
+            "description": "ID of the created user",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "FlairsService"
+        ],
+        "security": []
+      }
+    },
     "/v1/account/user/{email}": {
       "get": {
         "summary": "Create a new user",

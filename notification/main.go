@@ -22,7 +22,7 @@ import (
 	"github.com/streadway/amqp"
 )
 
-func LoadEnv() {
+func loadEnv() {
 	log.Println("env loading...")
 	err := godotenv.Load(".env")
 	if err != nil {
@@ -30,10 +30,13 @@ func LoadEnv() {
 	}
 }
 func main() {
-	LoadEnv()
-	conn, err := amqp.Dial("amqp://guest:guest@localhost:5672/")
+	if os.Getenv("APP_ENV") != "production" {
+		loadEnv()
+	}
+
+	conn, err := amqp.Dial(os.Getenv("AMQP_URL"))
 	if err != nil {
-		log.Fatal("could not establish ampy: ", err.Error())
+		log.Fatal("could not establish amqp: ", err.Error())
 	}
 	defer conn.Close()
 	eventListener, err := event_amqp.NewAMQPEventListener(conn, "auth")
@@ -43,7 +46,7 @@ func main() {
 }
 
 func ProcessEvents(eventListener events.EventListener) error {
-	received, errors, err := eventListener.Listen("auth", "user.created", "user.defaultwallet", "user.creditwallet", "user.debitwallet")
+	received, errors, err := eventListener.Listen("auth", "user.created", "user.defaultwallet", "user.transact")
 	if err != nil {
 		log.Fatalf("event listenner error")
 	}
@@ -159,7 +162,7 @@ func ProcessEvents(eventListener events.EventListener) error {
 					`{
 					"name":"default",
 					"memo":"default flairs wallet",
-					"userId":"` +  e.UserID + `",
+					"userId":"`+e.UserID+`",
 					"walletType": 211,
 					"currency": "NG",
 					"accountBal":0.00,
@@ -173,14 +176,14 @@ func ProcessEvents(eventListener events.EventListener) error {
 					Method: "POST",
 					URL:    reqURL,
 					Header: map[string][]string{
-						"Content-Type": {"application/json; charset=UTF-8"},					
+						"Content-Type":  {"application/json; charset=UTF-8"},
 						"Authorization": {e.Token},
 					},
 					Body: reqBody,
 				}
 				helper.HttpReq(req)
-			case *events.CreditWallet:
-				reqURL, _ := url.Parse(fmt.Sprintf("http://localhost:9000/v1/wallet/transact/%v" ,e.WalletID))
+			case *events.PerformTransaction:
+				reqURL, _ := url.Parse(os.Getenv("TransactionURLv1") + e.WalletID)
 
 				// create request body
 				bodyContent := fmt.Sprintf("{\"amount\":%v}", e.Amount)
@@ -191,7 +194,7 @@ func ProcessEvents(eventListener events.EventListener) error {
 					Method: "POST",
 					URL:    reqURL,
 					Header: map[string][]string{
-						"Content-Type": {"application/json; charset=UTF-8"},					
+						"Content-Type":  {"application/json; charset=UTF-8"},
 						"Authorization": {e.Token},
 					},
 					Body: reqBody,
