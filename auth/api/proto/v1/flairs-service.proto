@@ -39,8 +39,13 @@ option (grpc.gateway.protoc_gen_swagger.options.openapiv2_swagger) = {
                 name: "Authorization"
                 description: "Authentication token, passed into header"
               }
-           }
-    }
+           }}
+           security: {
+            security_requirement: {
+              key: "flairs_token"
+            }
+          }
+    
 };
 
 message User{
@@ -171,7 +176,6 @@ message validateEmailRequest{
 
 
 message setPasswordRequest{
-    string api = 1; 
     // Email of user to set password
     string email = 3;
     // Password to be added
@@ -179,18 +183,13 @@ message setPasswordRequest{
 }
 
 message resetPasswordRequest{
-        // jwt token for authentication
-        string token = 2;    
-    // Email of user to set password
-    string email = 3;
-    // Password to be added
-    string password = 4;
+    // Email of the user
+    string email = 4;
 }
 
 message sendValidationMailRequest{
-// Email of user to set password
-string email = 3;
-
+    // Email of user to set password
+    string email = 3;
 }
 
 message readUserByRequest{
@@ -260,7 +259,7 @@ service FlairsService{
         };
     }
 
-      // Create a new user
+      // Welcome user to the app with a mail
       rpc WelcomeUser (welcomeRequest) returns (customResponse){
         option (google.api.http)={
             get: "/v1/account/user/welcome/{email}"
@@ -280,7 +279,7 @@ service FlairsService{
         };
     }
 
-    // Set user password
+    // Set a user password
     rpc SetUserPassword (setPasswordRequest) returns (customResponse){
         option (google.api.http)={
             post: "/v1/account/set_password"
@@ -288,10 +287,10 @@ service FlairsService{
         };
     }
 
-    // Reset user password
+    // Request to reset user password
     rpc ResetUserPassword (resetPasswordRequest) returns (customResponse){
         option (google.api.http)={
-            post: "/v1/account/reset_password/{token}"
+            post: "/v1/account/reset_password"
             body:"*"
         };
     }

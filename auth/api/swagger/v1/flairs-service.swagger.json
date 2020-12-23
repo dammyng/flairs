@@ -62,9 +62,9 @@
         "security": []
       }
     },
-    "/v1/account/reset_password/{token}": {
+    "/v1/account/reset_password": {
       "post": {
-        "summary": "Reset user password",
+        "summary": "Request to reset user password",
         "operationId": "FlairsService_ResetUserPassword",
         "responses": {
           "200": {
@@ -89,13 +89,6 @@
         },
         "parameters": [
           {
-            "name": "token",
-            "description": "jwt token for authentication",
-            "in": "path",
-            "required": true,
-            "type": "string"
-          },
-          {
             "name": "body",
             "in": "body",
             "required": true,
@@ -111,7 +104,7 @@
     },
     "/v1/account/set_password": {
       "post": {
-        "summary": "Set user password",
+        "summary": "Set a user password",
         "operationId": "FlairsService_SetUserPassword",
         "responses": {
           "200": {
@@ -191,7 +184,7 @@
     },
     "/v1/account/user/welcome/{email}": {
       "get": {
-        "summary": "Create a new user",
+        "summary": "Welcome user to the app with a mail",
         "operationId": "FlairsService_WelcomeUser",
         "responses": {
           "200": {
@@ -714,26 +707,15 @@
     "v1resetPasswordRequest": {
       "type": "object",
       "properties": {
-        "token": {
-          "type": "string",
-          "title": "jwt token for authentication"
-        },
         "email": {
           "type": "string",
-          "title": "Email of user to set password"
-        },
-        "password": {
-          "type": "string",
-          "title": "Password to be added"
+          "title": "Email of the user"
         }
       }
     },
     "v1setPasswordRequest": {
       "type": "object",
       "properties": {
-        "api": {
-          "type": "string"
-        },
         "email": {
           "type": "string",
           "title": "Email of user to set password"
@@ -774,5 +756,10 @@
       "name": "Authorization",
       "in": "header"
     }
-  }
+  },
+  "security": [
+    {
+      "flairs_token": []
+    }
+  ]
 }
