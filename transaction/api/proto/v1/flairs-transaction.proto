@@ -41,6 +41,11 @@ option (grpc.gateway.protoc_gen_swagger.options.openapiv2_swagger) = {
               }
            }
     }
+    security: {
+        security_requirement: {
+          key: "flairs_token"
+        }
+      }
 };
 
 message Transaction{

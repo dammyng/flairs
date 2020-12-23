@@ -41,6 +41,11 @@ option (grpc.gateway.protoc_gen_swagger.options.openapiv2_swagger) = {
               }
            }
     }
+    security: {
+        security_requirement: {
+          key: "flairs_token"
+        }
+      }
 };
 
 message Wallet{
@@ -178,7 +183,7 @@ service WalletService{
         };
     }
 
-      // Perform a debit or credit
+      // Debit or credit a wallet
       rpc Transact (performTransactionReq) returns (performTransactionRes){
         option (google.api.http)={
             post: "/v1/wallet/transact/{walletID}"
@@ -186,7 +191,7 @@ service WalletService{
         };
     }
 
-          // Perform a debit or credit
+          // Update a wallet
           rpc UpdateWallet (updateWalletReq) returns (updateWalletRes){
             option (google.api.http)={
                 put: "/v1/wallet/{walletId}"
@@ -210,12 +215,12 @@ service WalletService{
         };
     }
         // Create a new wallet terms
-        rpc AddWalletTerm (newWalletTermRequest) returns (addWalletTermResponse){
-            option (google.api.http)={
-                post: "/v1/wallet_term"
-                body:"*"
-            };
-        }
+       // rpc AddWalletTerm (newWalletTermRequest) returns (addWalletTermResponse){
+        //    option (google.api.http)={
+         //       post: "/v1/wallet_term"
+         //       body:"*"
+         //   };
+       // }
 
                // Create a new wallet type
        rpc AddWalletType (newWalletTypeRequest) returns (addWalletTypeResponse){

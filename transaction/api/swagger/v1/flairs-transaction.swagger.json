@@ -278,5 +278,10 @@
       "name": "Authorization",
       "in": "header"
     }
-  }
+  },
+  "security": [
+    {
+      "flairs_token": []
+    }
+  ]
 }
