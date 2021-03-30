@@ -192,23 +192,14 @@ message sendValidationMailRequest{
     string email = 3;
 }
 
-message readUserByRequest{
+message getUserProfileRequest{
         // jwt token for authentication
         string token = 2;    
-
-        enum user_identifier {
-            EMAIL = 0;
-            ID = 1;
-            REFCODE = 2;
-        };
-
-    // Unique identifier  of user to be read
-    user_identifier identifier = 3;
-    string iValue = 4;
-
+        // user id
+        string  id = 3;
 }
 
-message readUserByResponse{    
+message getUserProfileResponse{    
     // User entity read br request
     Profile user = 2;
 }
@@ -249,7 +240,8 @@ message customResponse{
 }
 
 service FlairsService{
-    // Create a new user
+    // Create a new user account 
+    // Accepts a unique email address 
     rpc AddNewUser (addNewUserRequest) returns (addNewUserResponse){
         option (google.api.http)={
             get: "/v1/account/user/{email}"
@@ -260,6 +252,7 @@ service FlairsService{
     }
 
       // Welcome user to the app with a mail
+      // A welcome email would be sent to the user.
       rpc WelcomeUser (welcomeRequest) returns (customResponse){
         option (google.api.http)={
             get: "/v1/account/user/welcome/{email}"
@@ -270,6 +263,7 @@ service FlairsService{
     }
 
      // Verify a new email address
+     // Validated that the token is assign to the specified user
      rpc ValidateUserEmail (validateEmailRequest) returns (customResponse){
         option (google.api.http) = {
             get: "/v1/account/verify_email/{email}/{token}"
@@ -280,6 +274,7 @@ service FlairsService{
     }
 
     // Set a user password
+    // The payload contains all required entity for user to set a new password
     rpc SetUserPassword (setPasswordRequest) returns (customResponse){
         option (google.api.http)={
             post: "/v1/account/set_password"
@@ -288,6 +283,7 @@ service FlairsService{
     }
 
     // Request to reset user password
+    // For a user requesting to reset password
     rpc ResetUserPassword (resetPasswordRequest) returns (customResponse){
         option (google.api.http)={
             post: "/v1/account/reset_password"
@@ -296,6 +292,7 @@ service FlairsService{
     }
 
         // Request user validation email 
+        // Validates that an email belong to a specific user
         rpc SendValidationMail (sendValidationMailRequest) returns (customResponse){
             option (google.api.http)={
                 get: "/v1/account/validation/{email}"
@@ -317,10 +314,9 @@ service FlairsService{
     }
 
     // Read User with a unique identifier
-    rpc ReadUserBy (readUserByRequest) returns (readUserByResponse){
+    rpc GetUserProfile (getUserProfileRequest) returns (getUserProfileResponse){
         option (google.api.http)={
-            post: "/v1/account/users/{token}"
-            body:"*"
+            get: "/v1/account/users/{id}"
         };
     }
 

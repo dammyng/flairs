@@ -22,8 +22,6 @@ import (
 	"google.golang.org/grpc/status"
 )
 
-
-
 // AddNewUser initializes a new user with email address
 func (f *flairsServiceServer) AddNewUser(ctx context.Context, req *v1.AddNewUserRequest) (*v1.AddNewUserResponse, error) {
 	if !v1helper.IsEmailValid(req.Email) {
@@ -129,8 +127,41 @@ func (f *flairsServiceServer) LoginUser(ctx context.Context, req *v1.LoginReques
 	return res, nil
 }
 
-func (f *flairsServiceServer) ReadUserBy(ctx context.Context, req *v1.ReadUserByRequest) (*v1.ReadUserByResponse, error) {
-	return nil, nil
+func (f *flairsServiceServer) GetUserProfile(ctx context.Context, req *v1.GetUserProfileRequest) (*v1.GetUserProfileResponse, error) {
+	md, ok := metadata.FromIncomingContext(ctx)
+	if !ok {
+		return nil, status.Errorf(codes.DataLoss, "failed to retrive authentication token")
+	}
+	authorization := md.Get("Authorization")[0]
+	if authorization == "" {
+		return nil, status.Error(codes.Unauthenticated, "Invalid authorization token")
+	}
+
+	claims := &Claims{}
+	err := DecodeJwt(authorization, claims)
+
+	if err != nil {
+		if err == jwt.ErrSignatureInvalid {
+			return nil, status.Errorf(codes.Unauthenticated, "Could not authenticate this request")
+
+		}
+		return nil, status.Errorf(codes.Unauthenticated, "Could not authenticate - Token inaccessible")
+	}
+	u, err := f.Db.FindUser(&v1.User{ID: req.Id})
+
+	if err != nil {
+		return nil, status.Error(codes.NotFound, "Error fetching user record "+err.Error())
+	}
+
+	if req.Id != claims.UserID {
+		return nil, status.Error(codes.Unauthenticated, "Invalid authentication token")
+	}
+
+	return &v1.GetUserProfileResponse{
+		User: &v1.Profile{
+			ID: u.ID,
+		},
+	}, nil
 }
 
 func (f *flairsServiceServer) ResetUserPassword(ctx context.Context, req *v1.ResetPasswordRequest) (*v1.CustomResponse, error) {
@@ -318,8 +349,6 @@ func (f *flairsServiceServer) ValidateUserEmail(ctx context.Context, req *v1.Val
 		}
 		redis.Int(f.RedisConn.Do("HDEL", "email:verification", req.Email))
 
-
-
 		// Token required to create default wallet once email is a validated
 		expirationTime := time.Now().Add(24 * 60 * time.Minute)
 
@@ -346,4 +375,27 @@ func (f *flairsServiceServer) ValidateUserEmail(ctx context.Context, req *v1.Val
 		Message: "Successfully",
 		Request: "verify_email",
 	}, nil
+}
+
+func (f *flairsServiceServer) WelcomeUser(ctx context.Context, req *v1.WelcomeRequest) (*v1.CustomResponse, error) {
+
+	user, err := f.Db.FindUser(&v1.User{Email: req.Email})
+
+	if err != nil {
+		return nil, status.Error(codes.NotFound, "Error fetching user record "+err.Error())
+	}
+
+	ID := uuid.NewV4()
+
+	msg := events.WelcomeUserEvent{
+		ID: hex.EncodeToString(ID.Bytes()),
+		//		Host:  helper.GetIp4(),
+		Host:     "http://api.alphaplus.finance:3200",
+		Email:    user.Email,
+		Username: user.Username,
+	}
+	f.EventEmitter.Emit(&msg, "auth")
+
+
+	return &v1.CustomResponse{Request: "Welcome User", Message: "Success"}, nil
 }
