@@ -12,7 +12,7 @@ import (
 	"os"
 	"strings"
 
-	rice "github.com/GeertJohan/go.rice"
+	_ "github.com/GeertJohan/go.rice"
 	"github.com/joho/godotenv"
 
 	"notification/helper"
@@ -39,22 +39,32 @@ func main() {
 		log.Fatal("could not establish amqp: ", err.Error())
 	}
 	defer conn.Close()
+	// amqp component
+
+	_, err = event_amqp.NewAMQPEventEmitter(conn, "auth")
+	if err != nil {
+		log.Fatal("could not establish amqp connection :" + err.Error())
+	}
+
 	eventListener, err := event_amqp.NewAMQPEventListener(conn, "auth")
+	if err != nil {
+		log.Fatalf("setup ampq", err.Error())
+	}
 	go ProcessEvents(eventListener)
 	c := make(chan int)
 	<-c
 }
 
 func ProcessEvents(eventListener events.EventListener) error {
-	received, errors, err := eventListener.Listen("auth", "user.created", "user.defaultwallet", "user.transact")
+	received, errors, err := eventListener.Listen("auth", "user.created", "user.defaultwallet", "user.transact", "user.reset_password","user.welcome")
 	if err != nil {
-		log.Fatalf("event listenner error")
+		log.Fatalf("event listenner error %v", err.Error())
 	}
 
-	templateBox, err := rice.FindBox("html")
-	if err != nil {
-		log.Fatal(err)
-	}
+	//templateBox, err := rice.FindBox("html")
+	//if err != nil {
+	//	log.Fatal(err)
+	//}
 
 	for {
 		select {
@@ -89,12 +99,13 @@ func ProcessEvents(eventListener events.EventListener) error {
 					htmlContent,
 				}
 				helper.SendMail(msg, os.Getenv("AlphaAdmin"), os.Getenv("SendGridKey"))
+			
 			case *events.WelcomeUserEvent:
 				subject := "Welcome to the world of Flairs!"
-				tString, err := templateBox.String("welcome.html")
+				//tString, err := templateBox.String("welcome.html")
 				//t := template.Must(template.New("welcome_user").ParseFiles("html/welcome.html"))
-				t := template.Must(template.New("welcome_user").Parse(tString))
-				/*textContent := fmt.Sprint(`Now that you have successfully created your Flairs account you are welcome to a world of limitless opportunities:
+				//t := template.Must(template.New("welcome_user").Parse(tString))
+				textContent := fmt.Sprint(`%s, Now that you have successfully created your Flairs account you are welcome to a world of limitless opportunities:
 					- Do all your banking operations all in one app
 					- Use your Flairs VISA card on all channels across the globe!
 					- Same money on  whooping Flairs deals,
@@ -105,14 +116,14 @@ func ProcessEvents(eventListener events.EventListener) error {
 				Welcome aboard!
 				With,
 				Lola
-				Your PFA`)*/
+				Your PFA`, e.Username)
 				out := new(bytes.Buffer)
 				data := struct {
 					Username string
 				}{
 					e.Username,
 				}
-				//t := template.Must(template.New("welcome_user").Parse(textContent))
+				t := template.Must(template.New("welcome_user").Parse(textContent))
 
 				err = t.Execute(out, data)
 				if err != nil {
@@ -128,6 +139,7 @@ func ProcessEvents(eventListener events.EventListener) error {
 					htmlContent,
 				}
 				helper.SendMail(msg, os.Getenv("AlphaAdmin"), os.Getenv("SendGridKey"))
+			
 			case *events.UserCreatedEvent:
 				subject := "Your Flairs Email Verification Code"
 				textContent := fmt.Sprintf("You're on your way! Your email verification code is %s", e.Token)

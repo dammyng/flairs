@@ -350,23 +350,23 @@ func (f *flairsServiceServer) ValidateUserEmail(ctx context.Context, req *v1.Val
 		redis.Int(f.RedisConn.Do("HDEL", "email:verification", req.Email))
 
 		// Token required to create default wallet once email is a validated
-		expirationTime := time.Now().Add(24 * 60 * time.Minute)
+		//expirationTime := time.Now().Add(24 * 60 * time.Minute)
 
-		claims := &Claims{
-			UserID: user.ID,
-			StandardClaims: jwt.StandardClaims{
-				ExpiresAt: expirationTime.Unix(),
-			},
-		}
+		//claims := &Claims{
+		//	UserID: user.ID,
+		//	StandardClaims: jwt.StandardClaims{
+		//		ExpiresAt: expirationTime.Unix(),
+		//	},
+		//}
 
-		token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
-		tokenString, err := token.SignedString([]byte(os.Getenv("JWT_FLAIRS_KEY")))
+		//token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
+		//tokenString, err := token.SignedString([]byte(os.Getenv("JWT_FLAIRS_KEY")))
 
-		msg := events.CreateDefWallet{
-			UserID: user.ID,
-			Token:  tokenString,
-		}
-		f.EventEmitter.Emit(&msg, "auth")
+		//msg := events.CreateDefWallet{
+		//	UserID: user.ID,
+		//	Token:  tokenString,
+		//}
+		//f.EventEmitter.Emit(&msg, "auth")
 	} else {
 		return nil, status.Error(codes.InvalidArgument, "Invalid authentication token")
 	}

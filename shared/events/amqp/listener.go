@@ -20,8 +20,8 @@ func (a *amqpEventListener) setup() error {
 	}
 
 	defer channel.Close()
-
 	_, err = channel.QueueDeclare(a.queue, true, false, false, false, nil)
+
 	return err
 }
 
@@ -44,14 +44,15 @@ func (a *amqpEventListener) Listen(exchange string, eventnames ...string) (<-cha
 	if err != nil {
 		return nil, nil, err
 	}
-
 	for _, eventName := range eventnames {
 		if err := channel.QueueBind(a.queue, eventName, exchange, false, nil); err != nil {
+
 			return nil, nil, err
 		}
+
 	}
 
-	msgs, err := channel.Consume(a.queue, "", false, false, false, false, nil)
+	msgs, err := channel.Consume(a.queue, "", false, false, true, false, nil)
 
 	if err != nil {
 		return nil, nil, err
