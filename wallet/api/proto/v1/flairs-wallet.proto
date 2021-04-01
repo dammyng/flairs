@@ -121,6 +121,7 @@ message WalletType{
 message newWalletRequest{
     string name = 7;
     string userId = 2;
+    
     enum walletType {
         Default = 0;
         Indulgent = 1;
@@ -144,30 +145,10 @@ message addWalletResponse{
     string ID=1;
 }
 
-message newWalletTypeRequest{
-    string name=3;
-    string description = 4;
+message walletSetting{
+   
 }
 
-message addWalletTypeResponse{
-    string ID=1;
-}
-
-message newWalletTermRequest{
-    string name=3;
-    string description = 4;
-    int32 withdrawDay = 2;
-}
-
-message addWalletTermResponse{
-    string ID=1;
-}
-
-
-message performTransactionReq{
-        string walletID = 2;
-        float amount=1;
-}
 
 message performTransactionRes{
     string ID = 2;
@@ -179,14 +160,6 @@ service WalletService{
        rpc AddNewWallet (newWalletRequest) returns (addWalletResponse){
         option (google.api.http)={
             post: "/v1/wallet"
-            body:"*"
-        };
-    }
-
-      // Debit or credit a wallet
-      rpc Transact (performTransactionReq) returns (performTransactionRes){
-        option (google.api.http)={
-            post: "/v1/wallet/transact/{walletID}"
             body:"*"
         };
     }
@@ -204,7 +177,7 @@ service WalletService{
        // Get wallets beloging to a particular user 
        rpc GetMyWallets (getMyWalletsRequest) returns (WalletsResponse){
         option (google.api.http)={
-            get: "/v1/wallets/{userId}"
+            get: "/v1/{userId}/wallets"
         };
     }
 
@@ -214,19 +187,6 @@ service WalletService{
             get: "/v1/wallet/{walletId}"
         };
     }
-        // Create a new wallet terms
-       // rpc AddWalletTerm (newWalletTermRequest) returns (addWalletTermResponse){
-        //    option (google.api.http)={
-         //       post: "/v1/wallet_term"
-         //       body:"*"
-         //   };
-       // }
-
-               // Create a new wallet type
-       rpc AddWalletType (newWalletTypeRequest) returns (addWalletTypeResponse){
-        option (google.api.http)={
-            post: "/v1/wallet_type"
-            body:"*"
-        };
-    }
+        
+    
 }

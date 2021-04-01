@@ -61,52 +61,6 @@
         ]
       }
     },
-    "/v1/wallet/transact/{walletID}": {
-      "post": {
-        "summary": "Debit or credit a wallet",
-        "operationId": "WalletService_Transact",
-        "responses": {
-          "200": {
-            "description": "A successful response.",
-            "schema": {
-              "$ref": "#/definitions/v1performTransactionRes"
-            }
-          },
-          "404": {
-            "description": "Returned when the resource does not exist.",
-            "schema": {
-              "type": "string",
-              "format": "string"
-            }
-          },
-          "default": {
-            "description": "An unexpected error response.",
-            "schema": {
-              "$ref": "#/definitions/runtimeError"
-            }
-          }
-        },
-        "parameters": [
-          {
-            "name": "walletID",
-            "in": "path",
-            "required": true,
-            "type": "string"
-          },
-          {
-            "name": "body",
-            "in": "body",
-            "required": true,
-            "schema": {
-              "$ref": "#/definitions/v1performTransactionReq"
-            }
-          }
-        ],
-        "tags": [
-          "WalletService"
-        ]
-      }
-    },
     "/v1/wallet/{walletId}": {
       "get": {
         "summary": "Get wallet using the walletID",
@@ -189,47 +143,7 @@
         ]
       }
     },
-    "/v1/wallet_type": {
-      "post": {
-        "summary": "Create a new wallet type",
-        "operationId": "WalletService_AddWalletType",
-        "responses": {
-          "200": {
-            "description": "A successful response.",
-            "schema": {
-              "$ref": "#/definitions/v1addWalletTypeResponse"
-            }
-          },
-          "404": {
-            "description": "Returned when the resource does not exist.",
-            "schema": {
-              "type": "string",
-              "format": "string"
-            }
-          },
-          "default": {
-            "description": "An unexpected error response.",
-            "schema": {
-              "$ref": "#/definitions/runtimeError"
-            }
-          }
-        },
-        "parameters": [
-          {
-            "name": "body",
-            "in": "body",
-            "required": true,
-            "schema": {
-              "$ref": "#/definitions/v1newWalletTypeRequest"
-            }
-          }
-        ],
-        "tags": [
-          "WalletService"
-        ]
-      }
-    },
-    "/v1/wallets/{userId}": {
+    "/v1/{userId}/wallets": {
       "get": {
         "summary": "Get wallets beloging to a particular user",
         "operationId": "WalletService_GetMyWallets",
@@ -411,14 +325,6 @@
         }
       }
     },
-    "v1addWalletTypeResponse": {
-      "type": "object",
-      "properties": {
-        "ID": {
-          "type": "string"
-        }
-      }
-    },
     "v1getOneWalletRes": {
       "type": "object",
       "properties": {
@@ -488,37 +394,6 @@
         "ledgerBal": {
           "type": "number",
           "format": "float"
-        }
-      }
-    },
-    "v1newWalletTypeRequest": {
-      "type": "object",
-      "properties": {
-        "name": {
-          "type": "string"
-        },
-        "description": {
-          "type": "string"
-        }
-      }
-    },
-    "v1performTransactionReq": {
-      "type": "object",
-      "properties": {
-        "walletID": {
-          "type": "string"
-        },
-        "amount": {
-          "type": "number",
-          "format": "float"
-        }
-      }
-    },
-    "v1performTransactionRes": {
-      "type": "object",
-      "properties": {
-        "ID": {
-          "type": "string"
         }
       }
     },

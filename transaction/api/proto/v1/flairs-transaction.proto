@@ -121,11 +121,31 @@ service FlairsTransactionService{
                 body:"*"
             };
         }
+        // Get wallets beloging to a particular user 
+       rpc GetMyTransactions (getMyTransactionsRequest) returns (TransactionsResponse){
+        option (google.api.http)={
+            get: "/v1/transaction/{id}"
+        };
+    }
+
+      //update a certain transaction 
+      rpc updateTransaction (getMyTransactionsRequest) returns (TransactionsResponse){
+        option (google.api.http)={
+            put: "/v1/transaction/{id}"
+        };
+    }
 
          // Get wallets beloging to a particular user 
        rpc GetMyTransactions (getMyTransactionsRequest) returns (TransactionsResponse){
         option (google.api.http)={
-            get: "/v1/transaction/{userId}"
+            get: "/v1/transactions/{userId}"
+        };
+    }
+
+       // Get wallets beloging to a particular user 
+       rpc GetMyTransactions (getMyTransactionsRequest) returns (TransactionsResponse){
+        option (google.api.http)={
+            get: "/v1/transactions/{walletID}"
         };
     }
 }
