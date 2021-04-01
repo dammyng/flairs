@@ -34,6 +34,7 @@ import (
 var testDb *gorm.DB
 var testRedis redis.Conn
 var testEmitter e_amqp.EventEmitter
+var flairsAuth flairsServiceServer
 func TestMain(m *testing.M) {
 
 	initDB()
@@ -99,7 +100,7 @@ func TestAddUser_duplicate_email(t *testing.T) {
 	ctx := context.Background()
 	sqlLayer := v1internals.NewMysqlLayer(testDb)
 	s := NewFlairsServiceServer(sqlLayer, testRedis, testEmitter)
-
+	
 	req := &v1.AddNewUserRequest{
 		Email: "someone@flairs.com",
 		Ref:   "dddddd",

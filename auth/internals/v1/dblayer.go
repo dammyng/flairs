@@ -2,6 +2,7 @@ package v1
 
 import (
 	v1 "auth/pkg/api/v1"
+	"errors"
 
 	"github.com/jinzhu/gorm"
 )
@@ -22,10 +23,14 @@ func NewMysqlLayer(session *gorm.DB) DatabaseHandler {
 //
 func (db *MysqlLayer) FindUser(arg *v1.User) (*User, error) {
 	var user User
-	if db.Session.Where(arg).First(&user).RecordNotFound() {
-		return &user, gorm.ErrRecordNotFound
+	err := db.Session.Where(arg).First(&user).Error
+	if errors.Is( err,  gorm.ErrRecordNotFound) {
+		return nil, gorm.ErrRecordNotFound
 	}
-	return &user, nil
+	if err != nil {
+		return nil, err
+	}
+	return &user, err
 }
 
 // CreateUser -> create a new user

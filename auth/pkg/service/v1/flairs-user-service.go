@@ -5,7 +5,6 @@ import (
 	v1helper "auth/pkg/helper/v1"
 	"context"
 	"encoding/hex"
-	"log"
 	"os"
 	"time"
 
@@ -59,11 +58,11 @@ func (f *flairsServiceServer) AddNewUser(ctx context.Context, req *v1.AddNewUser
 	token := v1helper.RandInt(6)
 	_, err = f.RedisConn.Do("HMSET", "email:verification", user.Email, token)
 	if err != nil {
-		log.Fatal(err)
+		//log.Fatal(err)
 	}
 	_, err = f.RedisConn.Do("HMSET", "password:reset", user.Email, token)
 	if err != nil {
-		log.Fatal(err)
+		//log.Fatal(err)
 	}
 
 	msg := events.UserCreatedEvent{
@@ -88,7 +87,7 @@ func (f *flairsServiceServer) LoginUser(ctx context.Context, req *v1.LoginReques
 	}
 
 	if user == nil && err != nil {
-		return nil, status.Error(codes.Internal, "Something went wrong verifying user.")
+		return nil, status.Error(codes.Internal, "We could not verify this account. Try again")
 	}
 	emailVerifiedAt := user.EmailVerifiedAt
 

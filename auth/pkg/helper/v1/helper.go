@@ -6,8 +6,9 @@ import (
 	"encoding/hex"
 	"log"
 	"math/rand"
+	"regexp"
 	"time"
-"regexp"
+
 	"github.com/fatih/structs"
 	"github.com/mitchellh/mapstructure"
 	"golang.org/x/crypto/bcrypt"
