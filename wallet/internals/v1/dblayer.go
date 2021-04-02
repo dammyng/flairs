@@ -19,8 +19,10 @@ func NewMysqlLayer(session *gorm.DB) DatabaseHandler {
 }
 
 // CreateWallet -> create a new wallet
-func (db *MysqlLayer) CreateWallet(arg *v1.Wallet) error {
-	return db.Session.Create(arg).Error
+func (db *MysqlLayer) CreateWallet(arg *v1.Wallet) (string ,error) {
+	db.Session.AutoMigrate(&v1.Wallet{})
+	operation := db.Session.Create(arg)
+	return arg.ID, operation.Error
 }
 
 // GetWallet -> get a new wallet

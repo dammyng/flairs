@@ -1,7 +1,6 @@
 syntax = "proto3";
-package v1;
+package wallet_v1;
 
-import "google/protobuf/timestamp.proto";
 import "google/api/annotations.proto";
 import "protoc-gen-swagger/options/annotations.proto";
 
@@ -51,29 +50,26 @@ option (grpc.gateway.protoc_gen_swagger.options.openapiv2_swagger) = {
 message Wallet{
     string ID =1;
     string userId = 2;
-    float accountBal = 10;
-    float ledgerBal = 12;
     int32 type = 6;
-    int32 access = 8;
     string accessDate = 14;
     string memo = 15;
     string name = 7;
     string status = 3;
-    string currency = 9;
+    currency currency = 9;
     string dateCreated = 11;
     string dateBalUpdate = 4;
     string lastUpdate = 13;
 }
 
 
-message getOneWalletRes{
+message getWalletResponse{
     float accountBal = 10;
     float ledgerBal = 12;
-    int32 walletType = 6;
+    WalletType type = 6;
     string memo = 8;
     string name = 7;
     string status = 3;
-    string currency = 9;
+    currency currency = 9;
     string dateCreated = 11;
     string dateBalUpdate = 4;
     string lastUpdate = 13;
@@ -92,10 +88,11 @@ message getOneWalletReq{
 }
 
 message WalletUpdate{
+    string userId = 2;
     string memo = 8;
     string name = 7;
     string status = 3;
-    int32 access = 1;
+    string accessDate = 14;
 }
 
 message updateWalletReq{
@@ -105,48 +102,28 @@ message updateWalletReq{
 message updateWalletRes{
     string walletId = 3;
 }
-message WalletTerms{
-    int32 ID=1;
-    string name=3;
-    string description = 4;
-    string withdrawDay = 2;
-}
 
-message WalletType{
-    int32 ID=1;
-    string name=3;
-    string description = 4;
-}
+enum WalletType {
+    Default = 0;
+    Indulgent = 1;
+    savings = 3;
+    fixed = 2;
+};
 
+enum currency {
+    NGR = 0;
+};
 message newWalletRequest{
     string name = 7;
     string userId = 2;
-    
-    enum walletType {
-        Default = 0;
-        Indulgent = 1;
-        savings = 3;
-        fixed = 2;
-    };
-    walletType type=6;
-    enum accessType {
-        Open = 0;
-        Specific = 1;
-    };
-    accessType access = 13;
-    string currency = 9;
+    WalletType type = 3;
+    currency currency = 9;
     string memo = 8;
     string status=1;
-    float accountBal = 10;
-    float ledgerBal = 12;
 }
 
 message addWalletResponse{
     string ID=1;
-}
-
-message walletSetting{
-   
 }
 
 
@@ -159,7 +136,7 @@ service WalletService{
        // Create a new wallet
        rpc AddNewWallet (newWalletRequest) returns (addWalletResponse){
         option (google.api.http)={
-            post: "/v1/wallet"
+            post: "/v1/wallet/new/{type}"
             body:"*"
         };
     }
@@ -182,9 +159,9 @@ service WalletService{
     }
 
      // Get wallet using the walletID
-     rpc GetOneWallet (getOneWalletReq) returns (getOneWalletRes){
+     rpc GetWallet (getOneWalletReq) returns (getWalletResponse){
         option (google.api.http)={
-            get: "/v1/wallet/{walletId}"
+            get: "/v1/wallets/{walletId}"
         };
     }
         

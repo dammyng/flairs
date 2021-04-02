@@ -1,7 +1,7 @@
 package grpc
 
 import (
-	"wallet/pkg/api/v1"
+	v1 "wallet/pkg/api/v1"
 	"context"
 	"log"
 	"net"

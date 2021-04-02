@@ -13,7 +13,9 @@ import (
 	"google.golang.org/grpc/status"
 )
 
-
+const(
+	Key = "secrek_key"
+)
 
 type flairsWalletServer struct {
 	Db v1internals.DatabaseHandler
@@ -33,7 +35,7 @@ func NewflairsWalletServer(db v1internals.DatabaseHandler) v1.WalletServiceServe
 // DecodeJwt - decodes JWT token from request
 func DecodeJwt(token string, claims *Claims) error {
 	_, err := jwt.ParseWithClaims(token, claims, func(token *jwt.Token) (interface{}, error) {
-		return []byte("secrek_key"), nil
+		return []byte(Key), nil
 	})
 	return err
 }
@@ -42,11 +44,11 @@ func (f *flairsWalletServer) AddNewWallet(ctx context.Context, req *v1.NewWallet
 
 	md, ok := metadata.FromIncomingContext(ctx)
 	if !ok {
-		return nil, status.Errorf(codes.DataLoss, "failed to get metadata")
+		return nil, NoAuthMetaDataError
 	}
 	authorization := md.Get("Authorization")[0]
 	if authorization == "" {
-		return nil, status.Error(codes.Unauthenticated, "Invalid authorization token ")
+		return nil, InvalidTokenError
 	}
 
 	claims := &Claims{}
@@ -54,21 +56,19 @@ func (f *flairsWalletServer) AddNewWallet(ctx context.Context, req *v1.NewWallet
 
 	if err != nil {
 		if err == jwt.ErrSignatureInvalid {
-			return nil, status.Errorf(codes.Unauthenticated, "Invalid token")
+			return nil, err
 
 		}
-		return nil, status.Errorf(codes.Unauthenticated, "Token inaccessible")
+		return nil, WrongTokenStruct
 	}
 
 	if req.UserId != claims.UserID {
-		return nil, status.Error(codes.Unauthenticated, "Error fetching user record ")
+		return nil, InvalidTokenError
 	}
 
 	ID := uuid.NewV4().String()
 
 	newWallet := v1.Wallet{
-		AccountBal:    req.AccountBal,
-		LedgerBal:     req.LedgerBal,
 		Currency:      req.Currency,
 		ID:            ID,
 		Type:   int32(req.Type),
@@ -81,24 +81,17 @@ func (f *flairsWalletServer) AddNewWallet(ctx context.Context, req *v1.NewWallet
 		LastUpdate:    time.Now().Format(time.RFC3339),
 	}
 
-	err = f.Db.CreateWallet(&newWallet)
+	id, err := f.Db.CreateWallet(&newWallet)
 	if err != nil {
 		return nil, status.Error(codes.Internal, "failed to create new wallet-> "+err.Error())
 	}
 
 	// Response
 	return &v1.AddWalletResponse{
-		ID: ID,
+		ID: id,
 	}, nil
 }
 
-func (f *flairsWalletServer) AddWalletTerm(ctx context.Context, req *v1.NewWalletTermRequest) (*v1.AddWalletTermResponse, error) {
-	return nil, nil
-}
-
-func (f *flairsWalletServer) AddWalletType(ctx context.Context, req *v1.NewWalletTypeRequest) (*v1.AddWalletTypeResponse, error) {
-	return nil, nil
-}
 
 func (f *flairsWalletServer) UpdateWallet(ctx context.Context, req *v1.UpdateWalletReq) (*v1.UpdateWalletRes, error) {
 
@@ -123,14 +116,14 @@ func (f *flairsWalletServer) UpdateWallet(ctx context.Context, req *v1.UpdateWal
 		return nil, status.Errorf(codes.Unauthenticated, "Token inaccessible")
 	}
 
-	if req.UserId != claims.UserID {
+	if req.Wallet.UserId != claims.UserID {
 		return nil, status.Error(codes.Unauthenticated, "Error fetching user record ")
 	}
 
 	return nil, nil
 }
 
-func (f *flairsWalletServer) GetOneWallet(ctx context.Context, req *v1.GetOneWalletReq) (*v1.GetOneWalletRes, error) {
+func (f *flairsWalletServer) GetWallet(ctx context.Context, req *v1.GetOneWalletReq) (*v1.GetWalletResponse, error) {
 	
 
 	md, ok := metadata.FromIncomingContext(ctx)
@@ -153,26 +146,27 @@ func (f *flairsWalletServer) GetOneWallet(ctx context.Context, req *v1.GetOneWal
 		}
 		return nil, status.Errorf(codes.Unauthenticated, "Token inaccessible")
 	}
-
-	if req.UserId != claims.UserID {
-		return nil, status.Error(codes.Unauthenticated, "Error fetching user record ")
-	}
 	
 	w, err := f.Db.GetWallet(&v1.GetOneWalletReq{WalletId: req.WalletId})
+
+	if w.UserId != claims.UserID {
+		return nil, status.Error(codes.Unauthenticated, "Error fetching user record ")
+	}
+
 	if err != nil {
 		return nil, status.Errorf(codes.NotFound, "Wallet not found")
 	}
-	return &v1.GetOneWalletRes{
-		AccountBal: w.AccountBal,
+	return &v1.GetWalletResponse{
+		AccountBal: 0,
 		Currency: w.Currency,
 		DateBalUpdate: w.DateBalUpdate,
 		DateCreated: w.DateCreated,
 		LastUpdate: w.LastUpdate,
-		LedgerBal: w.LedgerBal,
+		LedgerBal: 0,
 		Memo: w.Memo,
 		Name: w.Name,
 		Status: w.Status,
-		WalletType: w.Type,
+		Type: v1.WalletType_Default,
 	}, nil
 }
 
@@ -217,6 +211,7 @@ func (f *flairsWalletServer) GetMyWallets(ctx context.Context, req *v1.GetMyWall
 	return &ws, nil
 }
 
+/**
 func (f *flairsWalletServer) Transact(ctx context.Context, req *v1.PerformTransactionReq) (*v1.PerformTransactionRes, error) {
 
 	// Get wallet
@@ -236,3 +231,4 @@ func (f *flairsWalletServer) Transact(ctx context.Context, req *v1.PerformTransa
 		ID: req.WalletID,
 	}, nil
 }
+**/

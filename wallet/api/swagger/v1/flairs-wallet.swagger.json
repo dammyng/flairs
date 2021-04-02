@@ -21,7 +21,7 @@
     "application/json"
   ],
   "paths": {
-    "/v1/wallet": {
+    "/v1/wallet/new/{type}": {
       "post": {
         "summary": "Create a new wallet",
         "operationId": "WalletService_AddNewWallet",
@@ -29,7 +29,7 @@
           "200": {
             "description": "A successful response.",
             "schema": {
-              "$ref": "#/definitions/v1addWalletResponse"
+              "$ref": "#/definitions/wallet_v1addWalletResponse"
             }
           },
           "404": {
@@ -48,11 +48,23 @@
         },
         "parameters": [
           {
+            "name": "type",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "enum": [
+              "Default",
+              "Indulgent",
+              "savings",
+              "fixed"
+            ]
+          },
+          {
             "name": "body",
             "in": "body",
             "required": true,
             "schema": {
-              "$ref": "#/definitions/v1newWalletRequest"
+              "$ref": "#/definitions/wallet_v1newWalletRequest"
             }
           }
         ],
@@ -62,42 +74,6 @@
       }
     },
     "/v1/wallet/{walletId}": {
-      "get": {
-        "summary": "Get wallet using the walletID",
-        "operationId": "WalletService_GetOneWallet",
-        "responses": {
-          "200": {
-            "description": "A successful response.",
-            "schema": {
-              "$ref": "#/definitions/v1getOneWalletRes"
-            }
-          },
-          "404": {
-            "description": "Returned when the resource does not exist.",
-            "schema": {
-              "type": "string",
-              "format": "string"
-            }
-          },
-          "default": {
-            "description": "An unexpected error response.",
-            "schema": {
-              "$ref": "#/definitions/runtimeError"
-            }
-          }
-        },
-        "parameters": [
-          {
-            "name": "walletId",
-            "in": "path",
-            "required": true,
-            "type": "string"
-          }
-        ],
-        "tags": [
-          "WalletService"
-        ]
-      },
       "put": {
         "summary": "Update a wallet",
         "operationId": "WalletService_UpdateWallet",
@@ -105,7 +81,7 @@
           "200": {
             "description": "A successful response.",
             "schema": {
-              "$ref": "#/definitions/v1updateWalletRes"
+              "$ref": "#/definitions/wallet_v1updateWalletRes"
             }
           },
           "404": {
@@ -134,8 +110,46 @@
             "in": "body",
             "required": true,
             "schema": {
-              "$ref": "#/definitions/v1updateWalletReq"
+              "$ref": "#/definitions/wallet_v1updateWalletReq"
             }
+          }
+        ],
+        "tags": [
+          "WalletService"
+        ]
+      }
+    },
+    "/v1/wallets/{walletId}": {
+      "get": {
+        "summary": "Get wallet using the walletID",
+        "operationId": "WalletService_GetWallet",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/wallet_v1getWalletResponse"
+            }
+          },
+          "404": {
+            "description": "Returned when the resource does not exist.",
+            "schema": {
+              "type": "string",
+              "format": "string"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/runtimeError"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "walletId",
+            "in": "path",
+            "required": true,
+            "type": "string"
           }
         ],
         "tags": [
@@ -151,7 +165,7 @@
           "200": {
             "description": "A successful response.",
             "schema": {
-              "$ref": "#/definitions/v1WalletsResponse"
+              "$ref": "#/definitions/wallet_v1WalletsResponse"
             }
           },
           "404": {
@@ -183,24 +197,6 @@
     }
   },
   "definitions": {
-    "newWalletRequestaccessType": {
-      "type": "string",
-      "enum": [
-        "Open",
-        "Specific"
-      ],
-      "default": "Open"
-    },
-    "newWalletRequestwalletType": {
-      "type": "string",
-      "enum": [
-        "Default",
-        "Indulgent",
-        "savings",
-        "fixed"
-      ],
-      "default": "Default"
-    },
     "protobufAny": {
       "type": "object",
       "properties": {
@@ -237,7 +233,7 @@
         }
       }
     },
-    "v1Wallet": {
+    "wallet_v1Wallet": {
       "type": "object",
       "properties": {
         "ID": {
@@ -246,19 +242,7 @@
         "userId": {
           "type": "string"
         },
-        "accountBal": {
-          "type": "number",
-          "format": "float"
-        },
-        "ledgerBal": {
-          "type": "number",
-          "format": "float"
-        },
         "type": {
-          "type": "integer",
-          "format": "int32"
-        },
-        "access": {
           "type": "integer",
           "format": "int32"
         },
@@ -275,7 +259,7 @@
           "type": "string"
         },
         "currency": {
-          "type": "string"
+          "$ref": "#/definitions/wallet_v1currency"
         },
         "dateCreated": {
           "type": "string"
@@ -288,9 +272,22 @@
         }
       }
     },
-    "v1WalletUpdate": {
+    "wallet_v1WalletType": {
+      "type": "string",
+      "enum": [
+        "Default",
+        "Indulgent",
+        "savings",
+        "fixed"
+      ],
+      "default": "Default"
+    },
+    "wallet_v1WalletUpdate": {
       "type": "object",
       "properties": {
+        "userId": {
+          "type": "string"
+        },
         "memo": {
           "type": "string"
         },
@@ -300,24 +297,23 @@
         "status": {
           "type": "string"
         },
-        "access": {
-          "type": "integer",
-          "format": "int32"
+        "accessDate": {
+          "type": "string"
         }
       }
     },
-    "v1WalletsResponse": {
+    "wallet_v1WalletsResponse": {
       "type": "object",
       "properties": {
         "wallets": {
           "type": "array",
           "items": {
-            "$ref": "#/definitions/v1Wallet"
+            "$ref": "#/definitions/wallet_v1Wallet"
           }
         }
       }
     },
-    "v1addWalletResponse": {
+    "wallet_v1addWalletResponse": {
       "type": "object",
       "properties": {
         "ID": {
@@ -325,7 +321,14 @@
         }
       }
     },
-    "v1getOneWalletRes": {
+    "wallet_v1currency": {
+      "type": "string",
+      "enum": [
+        "NGR"
+      ],
+      "default": "NGR"
+    },
+    "wallet_v1getWalletResponse": {
       "type": "object",
       "properties": {
         "accountBal": {
@@ -336,9 +339,8 @@
           "type": "number",
           "format": "float"
         },
-        "walletType": {
-          "type": "integer",
-          "format": "int32"
+        "type": {
+          "$ref": "#/definitions/wallet_v1WalletType"
         },
         "memo": {
           "type": "string"
@@ -350,7 +352,7 @@
           "type": "string"
         },
         "currency": {
-          "type": "string"
+          "$ref": "#/definitions/wallet_v1currency"
         },
         "dateCreated": {
           "type": "string"
@@ -363,7 +365,7 @@
         }
       }
     },
-    "v1newWalletRequest": {
+    "wallet_v1newWalletRequest": {
       "type": "object",
       "properties": {
         "name": {
@@ -373,42 +375,31 @@
           "type": "string"
         },
         "type": {
-          "$ref": "#/definitions/newWalletRequestwalletType"
-        },
-        "access": {
-          "$ref": "#/definitions/newWalletRequestaccessType"
+          "$ref": "#/definitions/wallet_v1WalletType"
         },
         "currency": {
-          "type": "string"
+          "$ref": "#/definitions/wallet_v1currency"
         },
         "memo": {
           "type": "string"
         },
         "status": {
           "type": "string"
-        },
-        "accountBal": {
-          "type": "number",
-          "format": "float"
-        },
-        "ledgerBal": {
-          "type": "number",
-          "format": "float"
         }
       }
     },
-    "v1updateWalletReq": {
+    "wallet_v1updateWalletReq": {
       "type": "object",
       "properties": {
         "walletId": {
           "type": "string"
         },
         "wallet": {
-          "$ref": "#/definitions/v1WalletUpdate"
+          "$ref": "#/definitions/wallet_v1WalletUpdate"
         }
       }
     },
-    "v1updateWalletRes": {
+    "wallet_v1updateWalletRes": {
       "type": "object",
       "properties": {
         "walletId": {

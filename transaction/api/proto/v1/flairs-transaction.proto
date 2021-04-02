@@ -100,36 +100,63 @@ message newTransactionReq{
 }
 
 message newTransactionRes{
-    string ID = 4;
+    string id = 4;
 }
 
 
+message getTransactionRequest{
+    string id = 1;
+    string walletId =2;
+}
+
+
+message updateTransactionResponse{
+    string id = 1;
+}
+
+message updateTransactionsRequest{
+    string id = 1;
+    string key = 2;
+    string status = 3;
+    string txRef =4;
+}
+
 message getMyTransactionsRequest{
     string userId = 3;
+}
+
+
+message getWalletTransactionsRequest{
+    string walletId = 3;
 }
 
 message TransactionsResponse{
     repeated Transaction transactions = 3;
 }
 
+
+message TransactionResponse{
+    Transaction transaction = 3;
+}
 service FlairsTransactionService{
 
          // Create a new transaction
-         rpc AddnewTransaction (newTransactionReq) returns (newTransactionRes){
+         rpc AddNewTransaction (newTransactionReq) returns (newTransactionRes){
             option (google.api.http)={
                 post: "/v1/transaction"
                 body:"*"
             };
         }
+
         // Get wallets beloging to a particular user 
-       rpc GetMyTransactions (getMyTransactionsRequest) returns (TransactionsResponse){
+       rpc GetTransaction (getTransactionRequest) returns (TransactionResponse){
         option (google.api.http)={
-            get: "/v1/transaction/{id}"
+            get: "/v1/transaction/{walletId}/{id}"
         };
     }
 
       //update a certain transaction 
-      rpc updateTransaction (getMyTransactionsRequest) returns (TransactionsResponse){
+      rpc updateTransaction (updateTransactionsRequest) returns (updateTransactionResponse){
         option (google.api.http)={
             put: "/v1/transaction/{id}"
         };
@@ -143,9 +170,9 @@ service FlairsTransactionService{
     }
 
        // Get wallets beloging to a particular user 
-       rpc GetMyTransactions (getMyTransactionsRequest) returns (TransactionsResponse){
+       rpc GetWalletTransactions (getWalletTransactionsRequest) returns (TransactionsResponse){
         option (google.api.http)={
-            get: "/v1/transactions/{walletID}"
+            get: "/v1/transactions/{walletId}"
         };
     }
 }

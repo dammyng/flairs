@@ -24,7 +24,7 @@
     "/v1/transaction": {
       "post": {
         "summary": "Create a new transaction",
-        "operationId": "FlairsTransactionService_AddnewTransaction",
+        "operationId": "FlairsTransactionService_AddNewTransaction",
         "responses": {
           "200": {
             "description": "A successful response.",
@@ -61,7 +61,89 @@
         ]
       }
     },
-    "/v1/transaction/{userId}": {
+    "/v1/transaction/{id}": {
+      "put": {
+        "summary": "update a certain transaction",
+        "operationId": "FlairsTransactionService_updateTransaction",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1updateTransactionResponse"
+            }
+          },
+          "404": {
+            "description": "Returned when the resource does not exist.",
+            "schema": {
+              "type": "string",
+              "format": "string"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/runtimeError"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "FlairsTransactionService"
+        ]
+      }
+    },
+    "/v1/transaction/{walletId}/{id}": {
+      "get": {
+        "summary": "Get wallets beloging to a particular user",
+        "operationId": "FlairsTransactionService_GetTransaction",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1TransactionResponse"
+            }
+          },
+          "404": {
+            "description": "Returned when the resource does not exist.",
+            "schema": {
+              "type": "string",
+              "format": "string"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/runtimeError"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "walletId",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "FlairsTransactionService"
+        ]
+      }
+    },
+    "/v1/transactions/{userId}": {
       "get": {
         "summary": "Get wallets beloging to a particular user",
         "operationId": "FlairsTransactionService_GetMyTransactions",
@@ -89,6 +171,44 @@
         "parameters": [
           {
             "name": "userId",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "FlairsTransactionService"
+        ]
+      }
+    },
+    "/v1/transactions/{walletId}": {
+      "get": {
+        "summary": "Get wallets beloging to a particular user",
+        "operationId": "FlairsTransactionService_GetWalletTransactions",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1TransactionsResponse"
+            }
+          },
+          "404": {
+            "description": "Returned when the resource does not exist.",
+            "schema": {
+              "type": "string",
+              "format": "string"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/runtimeError"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "walletId",
             "in": "path",
             "required": true,
             "type": "string"
@@ -210,6 +330,14 @@
         }
       }
     },
+    "v1TransactionResponse": {
+      "type": "object",
+      "properties": {
+        "transaction": {
+          "$ref": "#/definitions/v1Transaction"
+        }
+      }
+    },
     "v1TransactionsResponse": {
       "type": "object",
       "properties": {
@@ -265,7 +393,15 @@
     "v1newTransactionRes": {
       "type": "object",
       "properties": {
-        "ID": {
+        "id": {
+          "type": "string"
+        }
+      }
+    },
+    "v1updateTransactionResponse": {
+      "type": "object",
+      "properties": {
+        "id": {
           "type": "string"
         }
       }
