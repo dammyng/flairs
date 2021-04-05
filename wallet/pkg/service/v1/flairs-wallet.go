@@ -98,11 +98,11 @@ func (f *flairsWalletServer) UpdateWallet(ctx context.Context, req *v1.UpdateWal
 
 	md, ok := metadata.FromIncomingContext(ctx)
 	if !ok {
-		return nil, status.Errorf(codes.DataLoss, "failed to get metadata")
+		return nil, NoAuthMetaDataError
 	}
 	authorization := md.Get("Authorization")[0]
 	if authorization == "" {
-		return nil, status.Error(codes.Unauthenticated, "Invalid authorization token ")
+		return nil, InvalidTokenError
 	}
 
 	claims := &Claims{}
@@ -111,17 +111,32 @@ func (f *flairsWalletServer) UpdateWallet(ctx context.Context, req *v1.UpdateWal
 
 	if err != nil {
 		if err == jwt.ErrSignatureInvalid {
-			return nil, status.Errorf(codes.Unauthenticated, "Invalid token")
+			return nil, err
 
 		}
-		return nil, status.Errorf(codes.Unauthenticated, "Token inaccessible")
+		return nil, WrongTokenStruct
 	}
 
-	if req.Wallet.UserId != claims.UserID {
-		return nil, status.Error(codes.Unauthenticated, "Error fetching user record ")
+	w , err  := f.Db.GetWallet(&v1.GetOneWalletReq{WalletId: req.WalletId})
+
+	if errors.Is(err , gorm.ErrRecordNotFound){
+		return nil , WalletNotFoundError
+	}
+	if err != nil {
+		return nil, InternalError
+	}
+	if w.UserId != claims.UserID {
+		return nil, UserIDClaimIDError
 	}
 
-	return nil, nil
+	err = f.Db.UpdateWallet( w, updatableWallet(w, req.Wallet) )
+	if err != nil {
+		return nil, InternalError
+	}
+	
+	return &v1.UpdateWalletRes{
+		WalletId: w.ID ,
+	}, nil
 }
 
 func (f *flairsWalletServer) GetWallet(ctx context.Context, req *v1.GetOneWalletReq) (*v1.GetWalletResponse, error) {
@@ -170,11 +185,11 @@ func (f *flairsWalletServer) GetMyWallets(ctx context.Context, req *v1.GetMyWall
 
 	md, ok := metadata.FromIncomingContext(ctx)
 	if !ok {
-		return nil, status.Errorf(codes.DataLoss, "failed to get metadata")
+		return nil, NoAuthMetaDataError
 	}
 	authorization := md.Get("Authorization")[0]
 	if authorization == "" {
-		return nil, status.Error(codes.Unauthenticated, "Invalid authorization token ")
+		return nil, InvalidTokenError
 	}
 
 	claims := &Claims{}
@@ -183,19 +198,20 @@ func (f *flairsWalletServer) GetMyWallets(ctx context.Context, req *v1.GetMyWall
 
 	if err != nil {
 		if err == jwt.ErrSignatureInvalid {
-			return nil, status.Errorf(codes.Unauthenticated, "Invalid token")
+			return nil, err
 
 		}
-		return nil, status.Errorf(codes.Unauthenticated, "Token inaccessible")
+		return nil, WrongTokenStruct
 	}
 
 	if req.UserId != claims.UserID {
-		return nil, status.Error(codes.Unauthenticated, "Error fetching user record ")
+		return nil, UserIDClaimIDError
 	}
 
 	_ws, err := f.Db.GetUserWallets(req)
+
 	if err != nil {
-		return nil, status.Error(codes.Internal, "Get my wallets-> "+err.Error())
+		return nil, InternalError
 	}
 
 	var ws v1.WalletsResponse
@@ -203,29 +219,28 @@ func (f *flairsWalletServer) GetMyWallets(ctx context.Context, req *v1.GetMyWall
 	for _, v := range _ws {
 		ws.Wallets = append(ws.Wallets, &v)
 	}
+
 	// Response
 	return &ws, nil
 }
 
 
-/**
-func (f *flairsWalletServer) Transact(ctx context.Context, req *v1.PerformTransactionReq) (*v1.PerformTransactionRes, error) {
+func updatableWallet(old *v1.Wallet, args *v1.WalletUpdate) *v1.Wallet {
+	 w :=  v1.Wallet{
+		Memo: args.Memo,
+		Name: args.Name,
+		AccessDate: args.AccessDate,
+	}
+	
+	if w.Memo != ""{
+		w.Memo = old.Memo
+	}
+	if w.Name == "" {
+		w.Memo = old.Memo
+	}
+	if w.AccessDate == "" {
+		w.Memo = old.AccessDate
+	}
 
-	// Get wallet
-	w, err := f.Db.GetWallet(&v1.GetOneWalletReq{WalletId: req.WalletID})
-	if err != nil {
-		return nil, status.Errorf(codes.NotFound, "Wallet not found")
-	}
-	// update the balance
-	newBal := w.AccountBal + req.Amount
-	// gorm save
-	err = f.Db.UpdateWallet(&w, &v1.Wallet{AccountBal: newBal})
-	// return wallet ID,
-	if err != nil {
-		return nil, status.Errorf(codes.Internal, "Unable to complete")
-	}
-	return &v1.PerformTransactionRes{
-		ID: req.WalletID,
-	}, nil
+	return &w
 }
-**/
