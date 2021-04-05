@@ -10,4 +10,7 @@ var(
 	NoAuthMetaDataError = status.Errorf(codes.DataLoss, "failed to get authentication token - 50")
 	InvalidTokenError = status.Error(codes.Unauthenticated, "Invalid authorization token - 40")
 	WrongTokenStruct = status.Errorf(codes.Unauthenticated, "Failed to handle token")
+	UserIDClaimIDError = status.Error(codes.Unauthenticated, "Error fetching user record ")
+	WalletNotFoundError = status.Errorf(codes.NotFound, "Wallet not found")
+	InternalError = status.Errorf(codes.Internal, "Internal service error")
 )

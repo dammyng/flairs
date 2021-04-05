@@ -26,13 +26,13 @@ func (db *MysqlLayer) CreateWallet(arg *v1.Wallet) (string ,error) {
 }
 
 // GetWallet -> get a new wallet
-func (db *MysqlLayer) GetWallet(arg *v1.GetOneWalletReq) (v1.Wallet, error) {
+func (db *MysqlLayer) GetWallet(arg *v1.GetOneWalletReq) (*v1.Wallet, error) {
 	var w v1.Wallet
 
 	if db.Session.Where(&v1.Wallet{ID: arg.WalletId}).First(&w).RecordNotFound() {
-		return w, gorm.ErrRecordNotFound
+		return nil, gorm.ErrRecordNotFound
 	}
-	return w, nil
+	return &w, nil
 }
 
 // UpdateWallet -> update a new wallet

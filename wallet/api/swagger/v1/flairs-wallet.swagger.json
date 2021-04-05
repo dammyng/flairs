@@ -331,37 +331,8 @@
     "wallet_v1getWalletResponse": {
       "type": "object",
       "properties": {
-        "accountBal": {
-          "type": "number",
-          "format": "float"
-        },
-        "ledgerBal": {
-          "type": "number",
-          "format": "float"
-        },
-        "type": {
-          "$ref": "#/definitions/wallet_v1WalletType"
-        },
-        "memo": {
-          "type": "string"
-        },
-        "name": {
-          "type": "string"
-        },
-        "status": {
-          "type": "string"
-        },
-        "currency": {
-          "$ref": "#/definitions/wallet_v1currency"
-        },
-        "dateCreated": {
-          "type": "string"
-        },
-        "dateBalUpdate": {
-          "type": "string"
-        },
-        "lastUpdate": {
-          "type": "string"
+        "result": {
+          "$ref": "#/definitions/wallet_v1Wallet"
         }
       }
     },

@@ -23,6 +23,34 @@ import (
 
 var testDb *gorm.DB
 
+var(
+	userId = "user1"
+	wrongKey = "secret key two"
+	md1 = metadata.Pairs("authorization", "")
+
+	ctx = context.Background()
+	emptyCtx = metadata.NewIncomingContext(ctx, md1)
+
+	wrongToken = "wrongtoken_obviously_wrong"
+	md2 = metadata.Pairs("authorization", wrongToken)
+	wrongCtx = metadata.NewIncomingContext(ctx, md2)
+
+	anotherUsersToken = createToken("user2", Key)
+	md3 = metadata.Pairs("authorization", anotherUsersToken)
+	anotherUserCtx = metadata.NewIncomingContext(ctx, md3)
+
+	wrongSignerToken = createToken("user2", wrongKey)
+	md4 = metadata.Pairs("authorization", wrongSignerToken)
+	wrongSignerCtx = metadata.NewIncomingContext(ctx, md4)
+
+	shouldWorkToken = createToken(userId, Key)
+	md5 = metadata.Pairs("authorization", shouldWorkToken)
+	shouldWorkCtx = metadata.NewIncomingContext(ctx, md5)
+
+	walletID = "xxx-ddd-ccc"
+
+)
+
 func TestMain(m *testing.M) {
 
 	initDB()
@@ -39,7 +67,7 @@ func initDB() {
 	if err != nil {
 		log.Panicf("flairServiceServer.AddNewUser() error = %v,", err)
 	}
-	testDb.Exec(setup.DropDB)
+	//testDb.Exec(setup.DropDB)
 	testDb.Exec(setup.CreateDatabase)
 	testDb.Exec(setup.UseAlphaWallet)
 	testDb.Exec(setup.CreateWalletTable)
@@ -51,28 +79,6 @@ func TestCreateWallet(t *testing.T) {
 	sqlLayer := v1internals.NewMysqlLayer(testDb)
 	s := NewflairsWalletServer(sqlLayer)
 
-	userId := "user1"
-	wrongKey := "secret key two"
-	md := metadata.Pairs("authorization", "")
-
-	ctx := context.Background()
-	emptyCtx := metadata.NewIncomingContext(ctx, md)
-
-	wrongToken := "wrongtoken_obviously_wrong"
-	md = metadata.Pairs("authorization", wrongToken)
-	wrongCtx := metadata.NewIncomingContext(ctx, md)
-
-	anotherUsersToken := createToken("user2", Key)
-	md = metadata.Pairs("authorization", anotherUsersToken)
-	anotherUserCtx := metadata.NewIncomingContext(ctx, md)
-
-	wrongSignerToken := createToken("user2", wrongKey)
-	md = metadata.Pairs("authorization", wrongSignerToken)
-	wrongSignerCtx := metadata.NewIncomingContext(ctx, md)
-
-	shouldWorkToken := createToken(userId, Key)
-	md = metadata.Pairs("authorization", shouldWorkToken)
-	shouldWorkCtx := metadata.NewIncomingContext(ctx, md)
 
 	tests := map[string]struct {
 		input          *v1.NewWalletRequest
@@ -101,24 +107,44 @@ func TestCreateWallet(t *testing.T) {
 }
 
 
-func TestGetWallet_ok(t *testing.T) {
+func TestGetWallet(t *testing.T) {
 	clearWalletTable()
 	ctx := context.Background()
 	sqlLayer := v1internals.NewMysqlLayer(testDb)
 	s := NewflairsWalletServer(sqlLayer)
-	testDb.Save(v1.Wallet{ID: "xxx-id"})
-	rq := &v1.GetOneWalletReq{
-		WalletId: "xxx-id",
-	}
-	_, err := s.GetWallet(ctx, rq)
+
+	err := testDb.Save(v1.Wallet{ID: walletID, UserId: userId}).Error
 	if err != nil {
-		t.Errorf("flairWalletServer.CreateWallet_ok() error = %v, wantErr %v", err, "f")
-		return
+		log.Panicln(err)
 	}
 
-	var w v1.Wallet
-	testDb.Last(&w)
+	tests := map[string]struct {
+		input          *v1.GetOneWalletReq
+		_context       context.Context
+		expectedOutput *v1.GetWalletResponse
+		expectedError  error
+	}{
+		"NoAuthHeader":{input: &v1.GetOneWalletReq{WalletId: walletID}, _context: ctx, expectedOutput: nil, expectedError: NoAuthMetaDataError, },
+		"EmptyAuthHeader":{input: &v1.GetOneWalletReq{WalletId: walletID}, _context: emptyCtx, expectedOutput: nil, expectedError: InvalidTokenError, },
+		"WrongToken":{input: &v1.GetOneWalletReq{WalletId: walletID}, _context: wrongCtx, expectedOutput: nil, expectedError: WrongTokenStruct, },
+		"WrongSigner":{input: &v1.GetOneWalletReq{WalletId: walletID}, _context: wrongSignerCtx, expectedOutput: nil, expectedError: WrongTokenStruct, },
+		"AuthorizationMisMatch":{input: &v1.GetOneWalletReq{WalletId: walletID}, _context: anotherUserCtx, expectedOutput: nil, expectedError: UserIDClaimIDError, },
+		"ShouldWork":{input: &v1.GetOneWalletReq{WalletId: walletID}, _context: shouldWorkCtx, expectedOutput: nil, expectedError: nil, },
+	
+	}
 
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			actualOutput, actualError := s.GetWallet(tc._context, tc.input)
+			if actualError != nil{
+				require.Equal(t, tc.expectedError.Error(), actualError.Error())
+			}
+			if actualOutput != nil{
+				require.Equal(t, actualOutput.Result.ID , walletID)
+				require.Equal(t, actualOutput.Result.UserId , userId)
+			}
+		})
+	}
 }
 
 func TestGetMyWallet_ok(t *testing.T) {
