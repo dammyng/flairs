@@ -52,7 +52,7 @@
             "in": "body",
             "required": true,
             "schema": {
-              "$ref": "#/definitions/v1Transaction"
+              "$ref": "#/definitions/v1NewTransactionReq"
             }
           }
         ],
@@ -215,14 +215,6 @@
     }
   },
   "definitions": {
-    "Transactiontype": {
-      "type": "string",
-      "enum": [
-        "CREDIT",
-        "DEBIT"
-      ],
-      "default": "CREDIT"
-    },
     "protobufAny": {
       "type": "object",
       "properties": {
@@ -259,14 +251,12 @@
         }
       }
     },
-    "v1Transaction": {
+    "v1NewTransactionReq": {
       "type": "object",
       "properties": {
-        "ID": {
-          "type": "string"
-        },
         "amount": {
-          "type": "string"
+          "type": "number",
+          "format": "double"
         },
         "memo": {
           "type": "string"
@@ -296,7 +286,57 @@
           "type": "string"
         },
         "transType": {
-          "$ref": "#/definitions/Transactiontype"
+          "$ref": "#/definitions/v1NewTransactionReqtype"
+        }
+      }
+    },
+    "v1NewTransactionReqtype": {
+      "type": "string",
+      "enum": [
+        "CREDIT",
+        "DEBIT"
+      ],
+      "default": "CREDIT"
+    },
+    "v1Transaction": {
+      "type": "object",
+      "properties": {
+        "ID": {
+          "type": "string"
+        },
+        "amount": {
+          "type": "number",
+          "format": "double"
+        },
+        "memo": {
+          "type": "string"
+        },
+        "walletId": {
+          "type": "string"
+        },
+        "status": {
+          "type": "string"
+        },
+        "currency": {
+          "type": "string"
+        },
+        "txRef": {
+          "type": "string"
+        },
+        "customerId": {
+          "type": "string"
+        },
+        "createdAt": {
+          "type": "string"
+        },
+        "updatedAt": {
+          "type": "string"
+        },
+        "source": {
+          "type": "string"
+        },
+        "transType": {
+          "$ref": "#/definitions/v1Transactiontype"
         }
       }
     },
@@ -318,6 +358,14 @@
           }
         }
       }
+    },
+    "v1Transactiontype": {
+      "type": "string",
+      "enum": [
+        "CREDIT",
+        "DEBIT"
+      ],
+      "default": "CREDIT"
     },
     "v1WalletBalanceResponse": {
       "type": "object",

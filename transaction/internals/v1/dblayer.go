@@ -17,9 +17,30 @@ func NewMysqlLayer(session *gorm.DB) DatabaseHandler {
 	return &MysqlLayer{Session: session}
 }
 
+// GetTransaction -> get a new transaction
+func (db *MysqlLayer) GetTransaction(arg *v1.Transaction) (*v1.Transaction, error) {
+	var t v1.Transaction
+
+	if db.Session.Where(&v1.Transaction{ID: arg.ID}).First(&t).RecordNotFound() {
+		return nil, gorm.ErrRecordNotFound
+	}
+	return &t, nil
+}
+
 // CreateTransaction -> create a new transaction
-func (db *MysqlLayer) CreateTransaction(arg *v1.Transaction) error {
-	return db.Session.Create(arg).Error
+func (db *MysqlLayer) CreateTransaction(arg *v1.Transaction) (string, error) {
+	err := db.Session.Create(arg).Error
+	return arg.ID, err
+}
+
+// GetWalletTransactions -> get all transactions in a wallet
+func (db *MysqlLayer) GetWalletTransactions(arg *v1.Transaction) ([]v1.Transaction, error) {
+	var ts []v1.Transaction
+	err := db.Session.Where("wallet_id = ?", arg.WalletId).Find(&ts).Error
+	if err != nil {
+		return nil, err
+	}
+	return ts, err
 }
 
 
