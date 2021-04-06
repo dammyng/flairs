@@ -34,7 +34,7 @@ var _ = descriptor.ForMessage
 var _ = metadata.Join
 
 func request_FlairsTransactionService_AddNewTransaction_0(ctx context.Context, marshaler runtime.Marshaler, client FlairsTransactionServiceClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
-	var protoReq NewTransactionReq
+	var protoReq Transaction
 	var metadata runtime.ServerMetadata
 
 	newReader, berr := utilities.IOReaderFactory(req.Body)
@@ -51,7 +51,7 @@ func request_FlairsTransactionService_AddNewTransaction_0(ctx context.Context, m
 }
 
 func local_request_FlairsTransactionService_AddNewTransaction_0(ctx context.Context, marshaler runtime.Marshaler, server FlairsTransactionServiceServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
-	var protoReq NewTransactionReq
+	var protoReq Transaction
 	var metadata runtime.ServerMetadata
 
 	newReader, berr := utilities.IOReaderFactory(req.Body)
@@ -77,17 +77,6 @@ func request_FlairsTransactionService_GetTransaction_0(ctx context.Context, mars
 		err error
 		_   = err
 	)
-
-	val, ok = pathParams["walletId"]
-	if !ok {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "walletId")
-	}
-
-	protoReq.WalletId, err = runtime.String(val)
-
-	if err != nil {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "walletId", err)
-	}
 
 	val, ok = pathParams["id"]
 	if !ok {
@@ -115,17 +104,6 @@ func local_request_FlairsTransactionService_GetTransaction_0(ctx context.Context
 		err error
 		_   = err
 	)
-
-	val, ok = pathParams["walletId"]
-	if !ok {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "walletId")
-	}
-
-	protoReq.WalletId, err = runtime.String(val)
-
-	if err != nil {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "walletId", err)
-	}
 
 	val, ok = pathParams["id"]
 	if !ok {
@@ -591,13 +569,13 @@ func RegisterFlairsTransactionServiceHandlerClient(ctx context.Context, mux *run
 var (
 	pattern_FlairsTransactionService_AddNewTransaction_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1}, []string{"v1", "transaction"}, "", runtime.AssumeColonVerbOpt(true)))
 
-	pattern_FlairsTransactionService_GetTransaction_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 1, 0, 4, 1, 5, 2, 1, 0, 4, 1, 5, 3}, []string{"v1", "transaction", "walletId", "id"}, "", runtime.AssumeColonVerbOpt(true)))
+	pattern_FlairsTransactionService_GetTransaction_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 1, 0, 4, 1, 5, 2}, []string{"v1", "transactions", "id"}, "", runtime.AssumeColonVerbOpt(true)))
 
 	pattern_FlairsTransactionService_UpdateTransaction_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 1, 0, 4, 1, 5, 2}, []string{"v1", "transaction", "id"}, "", runtime.AssumeColonVerbOpt(true)))
 
-	pattern_FlairsTransactionService_GetMyTransactions_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 1, 0, 4, 1, 5, 2}, []string{"v1", "transactions", "userId"}, "", runtime.AssumeColonVerbOpt(true)))
+	pattern_FlairsTransactionService_GetMyTransactions_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 1, 0, 4, 1, 5, 3}, []string{"v1", "transactions", "u", "userId"}, "", runtime.AssumeColonVerbOpt(true)))
 
-	pattern_FlairsTransactionService_GetWalletTransactions_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 1, 0, 4, 1, 5, 2}, []string{"v1", "transactions", "walletId"}, "", runtime.AssumeColonVerbOpt(true)))
+	pattern_FlairsTransactionService_GetWalletTransactions_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 1, 0, 4, 1, 5, 3}, []string{"v1", "transactions", "w", "walletId"}, "", runtime.AssumeColonVerbOpt(true)))
 )
 
 var (

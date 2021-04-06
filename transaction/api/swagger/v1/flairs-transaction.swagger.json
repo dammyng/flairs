@@ -52,7 +52,7 @@
             "in": "body",
             "required": true,
             "schema": {
-              "$ref": "#/definitions/v1newTransactionReq"
+              "$ref": "#/definitions/v1Transaction"
             }
           }
         ],
@@ -64,7 +64,7 @@
     "/v1/transaction/{id}": {
       "put": {
         "summary": "update a certain transaction",
-        "operationId": "FlairsTransactionService_updateTransaction",
+        "operationId": "FlairsTransactionService_UpdateTransaction",
         "responses": {
           "200": {
             "description": "A successful response.",
@@ -99,51 +99,7 @@
         ]
       }
     },
-    "/v1/transaction/{walletId}/{id}": {
-      "get": {
-        "summary": "Get wallets beloging to a particular user",
-        "operationId": "FlairsTransactionService_GetTransaction",
-        "responses": {
-          "200": {
-            "description": "A successful response.",
-            "schema": {
-              "$ref": "#/definitions/v1TransactionResponse"
-            }
-          },
-          "404": {
-            "description": "Returned when the resource does not exist.",
-            "schema": {
-              "type": "string",
-              "format": "string"
-            }
-          },
-          "default": {
-            "description": "An unexpected error response.",
-            "schema": {
-              "$ref": "#/definitions/runtimeError"
-            }
-          }
-        },
-        "parameters": [
-          {
-            "name": "walletId",
-            "in": "path",
-            "required": true,
-            "type": "string"
-          },
-          {
-            "name": "id",
-            "in": "path",
-            "required": true,
-            "type": "string"
-          }
-        ],
-        "tags": [
-          "FlairsTransactionService"
-        ]
-      }
-    },
-    "/v1/transactions/{userId}": {
+    "/v1/transactions/u/{userId}": {
       "get": {
         "summary": "Get wallets beloging to a particular user",
         "operationId": "FlairsTransactionService_GetMyTransactions",
@@ -181,7 +137,7 @@
         ]
       }
     },
-    "/v1/transactions/{walletId}": {
+    "/v1/transactions/w/{walletId}": {
       "get": {
         "summary": "Get wallets beloging to a particular user",
         "operationId": "FlairsTransactionService_GetWalletTransactions",
@@ -189,7 +145,7 @@
           "200": {
             "description": "A successful response.",
             "schema": {
-              "$ref": "#/definitions/v1TransactionsResponse"
+              "$ref": "#/definitions/v1WalletBalanceResponse"
             }
           },
           "404": {
@@ -218,16 +174,54 @@
           "FlairsTransactionService"
         ]
       }
+    },
+    "/v1/transactions/{id}": {
+      "get": {
+        "summary": "Get wallets beloging to a particular user",
+        "operationId": "FlairsTransactionService_GetTransaction",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1TransactionResponse"
+            }
+          },
+          "404": {
+            "description": "Returned when the resource does not exist.",
+            "schema": {
+              "type": "string",
+              "format": "string"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/runtimeError"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "FlairsTransactionService"
+        ]
+      }
     }
   },
   "definitions": {
     "Transactiontype": {
       "type": "string",
       "enum": [
-        "EXPENSE",
-        "INCOME"
+        "CREDIT",
+        "DEBIT"
       ],
-      "default": "EXPENSE"
+      "default": "CREDIT"
     },
     "protobufAny": {
       "type": "object",
@@ -277,9 +271,6 @@
         "memo": {
           "type": "string"
         },
-        "message": {
-          "type": "string"
-        },
         "walletId": {
           "type": "string"
         },
@@ -292,34 +283,13 @@
         "txRef": {
           "type": "string"
         },
-        "flwRef": {
-          "type": "string"
-        },
-        "customer": {
-          "type": "string"
-        },
         "customerId": {
-          "type": "string"
-        },
-        "paymentType": {
           "type": "string"
         },
         "createdAt": {
           "type": "string"
         },
-        "deletedAt": {
-          "type": "string"
-        },
         "updatedAt": {
-          "type": "string"
-        },
-        "cardLastFourDigit": {
-          "type": "string"
-        },
-        "cardType": {
-          "type": "string"
-        },
-        "thirdPartyID": {
           "type": "string"
         },
         "source": {
@@ -349,46 +319,20 @@
         }
       }
     },
-    "v1newTransactionReq": {
+    "v1WalletBalanceResponse": {
       "type": "object",
       "properties": {
-        "thirdPartyID": {
-          "type": "string"
+        "transactions": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/v1Transaction"
+          }
         },
-        "source": {
-          "type": "string"
-        },
-        "userMemo": {
-          "type": "string"
-        },
-        "innerMemo": {
-          "type": "string"
-        },
-        "fromID": {
-          "type": "string"
-        },
-        "toID": {
-          "type": "string"
-        },
-        "userId": {
-          "type": "string"
-        },
-        "amount": {
+        "Balance": {
           "type": "number",
           "format": "double"
-        },
-        "transactionType": {
-          "$ref": "#/definitions/v1newTransactionReqclass"
         }
       }
-    },
-    "v1newTransactionReqclass": {
-      "type": "string",
-      "enum": [
-        "Fund",
-        "Transfer"
-      ],
-      "default": "Fund"
     },
     "v1newTransactionRes": {
       "type": "object",

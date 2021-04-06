@@ -2,16 +2,11 @@ package v1
 
 import (
 	"context"
-	"encoding/json"
-	"fmt"
-	"time"
 
 	//"io/ioutil"
 	"log"
 	"net/http"
-	"net/url"
-	"os"
-	"shared/events"
+	
 	amqp "shared/events/amqp"
 	v1internals "transaction/internals/v1"
 	v1 "transaction/pkg/api/v1"
@@ -29,7 +24,7 @@ const (
 
 type flairsTransactionServer struct {
 	Db           v1internals.DatabaseHandler
-	EventEmitter amqp.EventEmitter
+	EventEmitter amqp.EventEmitter                                                              
 }
 
 // Claims jwt custom authentication claims
@@ -53,7 +48,7 @@ func DecodeJwt(token string, claims *Claims) error {
 	return err
 }
 
-func (f *flairsTransactionServer) AddnewTransaction(ctx context.Context, req *v1.NewTransactionReq) (*v1.NewTransactionRes, error) {
+func (f *flairsTransactionServer) AddNewTransaction(ctx context.Context, req *v1.Transaction) (*v1.NewTransactionRes, error) {
 
 	md, ok := metadata.FromIncomingContext(ctx)
 	if !ok {
@@ -76,126 +71,33 @@ func (f *flairsTransactionServer) AddnewTransaction(ctx context.Context, req *v1
 		return nil, status.Errorf(codes.Unauthenticated, "Token inaccessible")
 	}
 
-	if req.UserId != claims.UserID {
-		return nil, status.Error(codes.Unauthenticated, "Error fetching user record ")
-	}
-	ID := uuid.NewV4().String()
+	
+	
+	_ = uuid.NewV4().String()
 
-	var newT = v1.Transaction{
-		ID:         ID,
-		CustomerId: req.UserId,
-		Memo:       req.UserMemo,
-		CreatedAt:  time.Now().Format(time.RFC3339),
-		UpdatedAt:  time.Now().Format(time.RFC3339),
-		Currency:   "",
-	}
-
-	switch req.TransactionType {
-	case 0:
-		reqURL, _ := url.Parse(fmt.Sprintf("https://api.flutterwave.com/v3/transactions/%v/verify", req.ThirdPartyID))
-		flutterReq := &http.Request{
-			Method: "GET",
-			URL:    reqURL,
-			Header: map[string][]string{
-				"Content-Type":  {"application/json; charset=UTF-8"},
-				"Authorization": {"Bearer " + os.Getenv("FlutterSecret")},
-			},
-			//Body: reqBody,
-		}
-		res, err := HttpReq(flutterReq)
-		if err != nil {
-			return nil, err
-		}
-		if res.StatusCode > 299 {
-			return nil, err
-		}
-		var result map[string]interface{}
-		json.NewDecoder(res.Body).Decode(&result)
-		// close response body
-		res.Body.Close()
-		Amount := 0.01
-		info := result["data"].(map[string]interface{})
-		card := info["card"].(map[string]interface{})
-		customer := info["customer"].(map[string]interface{})
-		log.Println(info)
-
-		msg := events.CreditWallet{
-			WalletID: req.FromID,
-			Amount:   Amount,
-		}
-		f.EventEmitter.Emit(&msg, "auth")
-		newT.Amount = fmt.Sprintf("%v", info["amount"].(float64)) 
-		newT.CardLastFourDigit = card["last_4digits"].(string)
-		newT.CardType = card["type"].(string)
-		newT.Currency = info["currency"].(string)
-		newT.FlwRef = info["currency"].(string)
-		newT.Message = req.InnerMemo
-		newT.PaymentType = info["payment_type"].(string)
-		newT.TransType = 2
-		newT.Customer  = customer["email"].(string)
-		newT.Status = info["status"].(string)
-		newT.TxRef = info["tx_ref"].(string)
-		newT.WalletId = req.FromID
-		err = f.Db.CreateTransaction(&newT)
-		if err != nil {
-			return nil, status.Errorf(codes.InvalidArgument, "Invalid Argument")
-		}
-		return &v1.NewTransactionRes{
-			ID: result["status"].(string),
-		}, nil
-
-	case 1:
-		sReqURL, _ := url.Parse(fmt.Sprintf("http://localhost:9000/v1/wallet/%v", req.FromID))
-
-		sender := &http.Request{
-			Method: "GET",
-			URL:    sReqURL,
-			Header: map[string][]string{
-				"Content-Type":  {"application/json; charset=UTF-8"},
-				"Authorization": {authorization},
-			},
-		}
-		res, err := HttpReq(sender)
-		if err != nil {
-			return nil, status.Errorf(codes.NotFound, "Invalid Argument")
-		}
-
-		var result map[string]interface{}
-		json.NewDecoder(res.Body).Decode(&result)
-		// close response body
-		res.Body.Close()
-		bal := result["accountBal"]
-		log.Println(result)
-		//bal, ok := result["AccountBal"]
-		//if !ok {
-		//	//return
-		//}
-		if bal.(float64) <= req.Amount {
-			return nil, status.Error(codes.InvalidArgument, "Low balance")
-		}
-		msg1 := events.CreditWallet{
-			WalletID: req.FromID,
-			Amount:   -req.Amount,
-		}
-		msg2 := events.CreditWallet{
-			WalletID: req.ToID,
-			Amount:   req.Amount,
-		}
-		f.EventEmitter.Emit(&msg1, "auth")
-		f.EventEmitter.Emit(&msg2, "auth")
-		//amt := fmt.Sprintf("%f", req.Amount)
-
-		return &v1.NewTransactionRes{
-			ID: "xxx-id",
-		}, nil
-	}
 	return nil, status.Error(codes.InvalidArgument, "Invalid transaction type")
+}
 
+
+func (f *flairsTransactionServer) GetTransaction(ctx context.Context, req *v1.GetTransactionRequest) (*v1.TransactionResponse, error) {
+	return nil, nil
+}
+
+func (f *flairsTransactionServer) UpdateTransaction(ctx context.Context, req *v1.UpdateTransactionsRequest) (*v1.UpdateTransactionResponse, error) {
+	return nil, nil
 }
 
 func (f *flairsTransactionServer) GetMyTransactions(ctx context.Context, req *v1.GetMyTransactionsRequest) (*v1.TransactionsResponse, error) {
 	return nil, nil
 }
+
+func (f *flairsTransactionServer) GetWalletTransactions(ctx context.Context, req *v1.GetWalletTransactionsRequest) (*v1.WalletBalanceResponse, error) {
+	return nil, nil
+}
+
+
+
+
 
 //{status: "successful", customer: {…}, transaction_id: 1695241, tx_ref: "hooli-tx-1920bbtyt", flw_ref: "FLW-MOCK-6439899760b3449a2db802decd80594f", …}
 //amount: 100
@@ -209,6 +111,8 @@ func (f *flairsTransactionServer) GetMyTransactions(ctx context.Context, req *v1
 //--header 'Content-Type: application/json' \
 //--header 'Authorization: Bearer {{SEC_KEY}}'
 
+
+
 func HttpReq(req *http.Request) (*http.Response, error) {
 
 	// send an HTTP request using `req` object
@@ -220,15 +124,4 @@ func HttpReq(req *http.Request) (*http.Response, error) {
 		return nil, err
 	}
 	return res, err
-	/** read response body
-	data, _ := ioutil.ReadAll(res.Body)
-
-	// close response body
-	res.Body.Close()
-
-	// print response status and body
-	log.Printf("status: %d\n", res.StatusCode)
-	log.Printf("body: %s\n", string(data))
-	return data, err
-	**/
 }

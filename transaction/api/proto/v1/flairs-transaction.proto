@@ -52,52 +52,24 @@ message Transaction{
     string ID =1;
     string amount = 4;
     string memo=5;
-    string message = 12;
     string walletId =8;
     string status =2;
     string currency =6;
     string txRef =3;
-    string flwRef=7;
-    string customer=10;
     string customerId=11;
-    string paymentType = 13;
     string createdAt= 14;
-    string deletedAt= 17;
     string updatedAt= 9;
-    string cardLastFourDigit= 15;
-    string cardType= 16;
-    string thirdPartyID = 20;
     string source = 21;
+
     enum type {
-        EXPENSE =0;
-        INCOME=1;
+        CREDIT =0;
+        DEBIT=1;
     };
-    enum class {
-        Fund =0;
-        Transfer=1;
-    };
+
     type transType = 19;
 
 }
 
-
-message newTransactionReq{
-    string thirdPartyID = 4;
-    string source = 8;
-    string userMemo = 2;
-    string innerMemo = 9;
-    string fromID = 1;
-    string toID = 7;
-    string userId = 3;
-    double amount = 6;
-    enum class {
-        Fund =0;
-        Transfer=1;
-    };
-    
-    class transactionType = 5;
-
-}
 
 message newTransactionRes{
     string id = 4;
@@ -106,9 +78,11 @@ message newTransactionRes{
 
 message getTransactionRequest{
     string id = 1;
-    string walletId =2;
 }
 
+message getWalletTransactionsRequest{
+    string walletId = 1;
+}
 
 message updateTransactionResponse{
     string id = 1;
@@ -125,15 +99,14 @@ message getMyTransactionsRequest{
     string userId = 3;
 }
 
-
-message getWalletTransactionsRequest{
-    string walletId = 3;
-}
-
 message TransactionsResponse{
     repeated Transaction transactions = 3;
 }
 
+message WalletBalanceResponse{
+    repeated Transaction transactions = 3;
+    double Balance = 1;
+}
 
 message TransactionResponse{
     Transaction transaction = 3;
@@ -141,7 +114,7 @@ message TransactionResponse{
 service FlairsTransactionService{
 
          // Create a new transaction
-         rpc AddNewTransaction (newTransactionReq) returns (newTransactionRes){
+         rpc AddNewTransaction (Transaction) returns (newTransactionRes){
             option (google.api.http)={
                 post: "/v1/transaction"
                 body:"*"
@@ -151,12 +124,12 @@ service FlairsTransactionService{
         // Get wallets beloging to a particular user 
        rpc GetTransaction (getTransactionRequest) returns (TransactionResponse){
         option (google.api.http)={
-            get: "/v1/transaction/{walletId}/{id}"
+            get: "/v1/transactions/{id}"
         };
     }
 
       //update a certain transaction 
-      rpc updateTransaction (updateTransactionsRequest) returns (updateTransactionResponse){
+      rpc UpdateTransaction (updateTransactionsRequest) returns (updateTransactionResponse){
         option (google.api.http)={
             put: "/v1/transaction/{id}"
         };
@@ -165,14 +138,14 @@ service FlairsTransactionService{
          // Get wallets beloging to a particular user 
        rpc GetMyTransactions (getMyTransactionsRequest) returns (TransactionsResponse){
         option (google.api.http)={
-            get: "/v1/transactions/{userId}"
+            get: "/v1/transactions/u/{userId}"
         };
     }
 
        // Get wallets beloging to a particular user 
-       rpc GetWalletTransactions (getWalletTransactionsRequest) returns (TransactionsResponse){
+       rpc GetWalletTransactions (getWalletTransactionsRequest) returns (WalletBalanceResponse){
         option (google.api.http)={
-            get: "/v1/transactions/{walletId}"
+            get: "/v1/transactions/w/{walletId}"
         };
     }
 }
