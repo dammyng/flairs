@@ -2,12 +2,20 @@ package v1
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
+	"fmt"
+	"net"
+	"os"
+	"strings"
 	"time"
 
 	//"io/ioutil"
 	"log"
 	"net/http"
+	"net/url"
+	"strconv"
+
 
 	amqp "shared/events/amqp"
 	v1internals "transaction/internals/v1"
@@ -143,7 +151,7 @@ func (f *flairsTransactionServer) GetMyTransactions(ctx context.Context, req *v1
 }
 
 func (f *flairsTransactionServer) GetWalletTransactions(ctx context.Context, req *v1.GetWalletTransactionsRequest) (*v1.WalletBalanceResponse, error) {
-	
+
 	md, ok := metadata.FromIncomingContext(ctx)
 	if !ok {
 		return nil, NoAuthMetaDataError
@@ -180,6 +188,59 @@ func (f *flairsTransactionServer) GetWalletTransactions(ctx context.Context, req
 
 	return &wb, nil
 }
+func (f *flairsTransactionServer) TransactFtDeposite(ctx context.Context, req *v1.TfDepositeRequest) (*v1.TransactResponse, error) {
+
+	reqURL, _ := url.Parse(fmt.Sprintf("https://api.flutterwave.com/v3/transactions/%v/verify", req.TxRef))
+	flutterReq := &http.Request{
+		Method: "GET",
+		URL:    reqURL,
+		Header: map[string][]string{
+			"Content-Type":  {"application/json; charset=UTF-8"},
+			"Authorization": {"Bearer " + os.Getenv("FlutterSecret")},
+		},
+	}
+	result, err := HttpReq(flutterReq)
+
+	if err != nil {
+		return nil, err
+	}
+	if result.StatusCode > 299 {
+		return nil, err
+	}
+	var response map[string]string
+	var data map[string]string
+
+	err = json.NewDecoder(result.Body).Decode(response)
+	err = json.NewDecoder(strings.NewReader(response["data"])).Decode(data)
+
+	amt, _ := strconv.ParseFloat(data["Amount"], 8)
+
+	newTransaction := v1.Transaction{
+		ID:         uuid.NewV4().String(),
+		Amount:     amt,
+		Memo:       "Wallet funds",
+		WalletId:   req.WalletId,
+		Status:     response["status"],
+		Currency:   "",
+		TxRef:      req.TxRef,
+		TransType:  v1.Transaction_CREDIT,
+		CustomerId: "",
+		Source:     "FW",
+		CreatedAt:  time.Now().Format(time.RFC3339),
+		UpdatedAt:  time.Now().Format(time.RFC3339),
+	}
+
+	_, err = f.Db.CreateTransaction(&newTransaction)
+	if err != nil {
+		return nil, InternalError
+	}
+
+	return &v1.TransactResponse{Amount: float32(amt)}, err
+}
+
+func (f *flairsTransactionServer) TransactWalletTransfer(ctx context.Context, req *v1.TransferRequest) (*v1.TransactResponse, error) {
+	return nil, nil
+}
 
 //{status: "successful", customer: {…}, transaction_id: 1695241, tx_ref: "hooli-tx-1920bbtyt", flw_ref: "FLW-MOCK-6439899760b3449a2db802decd80594f", …}
 //amount: 100
@@ -195,8 +256,18 @@ func (f *flairsTransactionServer) GetWalletTransactions(ctx context.Context, req
 
 func HttpReq(req *http.Request) (*http.Response, error) {
 
-	// send an HTTP request using `req` object
-	res, err := http.DefaultClient.Do(req)
+	var netTransport = &http.Transport{
+		Dial: (&net.Dialer{
+			Timeout: 5 * time.Second,
+		}).Dial,
+		TLSHandshakeTimeout: 5 * time.Second,
+	}
+
+	var netClient = &http.Client{
+		Timeout:   time.Second * 10,
+		Transport: netTransport,
+	}
+	res, err := netClient.Do(req)
 
 	// check for response error
 	if err != nil {
@@ -206,14 +277,13 @@ func HttpReq(req *http.Request) (*http.Response, error) {
 	return res, err
 }
 
-
 func evaluateBalance(ts []*v1.Transaction) float64 {
 	total := 0.0
 	for _, v := range ts {
-		if v.TransType == v1.Transaction_CREDIT && v.Status != "failed"{
+		if v.TransType == v1.Transaction_CREDIT && v.Status != "failed" {
 			total += v.Amount
-		} 
-		if v.TransType == v1.Transaction_DEBIT && v.Status != "failed"{
+		}
+		if v.TransType == v1.Transaction_DEBIT && v.Status != "failed" {
 			total += v.Amount
 		}
 	}

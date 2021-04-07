@@ -99,6 +99,86 @@
         ]
       }
     },
+    "/v1/transactions/transact-ft-deposite": {
+      "post": {
+        "summary": "Get wallets beloging to a particular user",
+        "operationId": "FlairsTransactionService_TransactFtDeposite",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1TransactResponse"
+            }
+          },
+          "404": {
+            "description": "Returned when the resource does not exist.",
+            "schema": {
+              "type": "string",
+              "format": "string"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/runtimeError"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v1TfDepositeRequest"
+            }
+          }
+        ],
+        "tags": [
+          "FlairsTransactionService"
+        ]
+      }
+    },
+    "/v1/transactions/transact-wallet-transfer": {
+      "post": {
+        "summary": "Get wallets beloging to a particular user",
+        "operationId": "FlairsTransactionService_TransactWalletTransfer",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1TransactResponse"
+            }
+          },
+          "404": {
+            "description": "Returned when the resource does not exist.",
+            "schema": {
+              "type": "string",
+              "format": "string"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/runtimeError"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v1TransferRequest"
+            }
+          }
+        ],
+        "tags": [
+          "FlairsTransactionService"
+        ]
+      }
+    },
     "/v1/transactions/u/{userId}": {
       "get": {
         "summary": "Get wallets beloging to a particular user",
@@ -298,6 +378,26 @@
       ],
       "default": "CREDIT"
     },
+    "v1TfDepositeRequest": {
+      "type": "object",
+      "properties": {
+        "txRef": {
+          "type": "string"
+        },
+        "walletId": {
+          "type": "string"
+        }
+      }
+    },
+    "v1TransactResponse": {
+      "type": "object",
+      "properties": {
+        "amount": {
+          "type": "number",
+          "format": "float"
+        }
+      }
+    },
     "v1Transaction": {
       "type": "object",
       "properties": {
@@ -366,6 +466,21 @@
         "DEBIT"
       ],
       "default": "CREDIT"
+    },
+    "v1TransferRequest": {
+      "type": "object",
+      "properties": {
+        "FromWalletId": {
+          "type": "string"
+        },
+        "ToWalletId": {
+          "type": "string"
+        },
+        "Amount": {
+          "type": "number",
+          "format": "float"
+        }
+      }
     },
     "v1WalletBalanceResponse": {
       "type": "object",

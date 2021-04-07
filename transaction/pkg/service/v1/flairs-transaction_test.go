@@ -49,12 +49,19 @@ func initAMQP() {
 }
 
 
-func TestAddnewTransaction_ok_case0(t *testing.T) {
+func TestAddnewTransaction(t *testing.T) {
 	clearTransactionTable()
 	ctx := context.Background()
 	sqlLayer := v1internals.NewMysqlLayer(testDb)
 	s := NewflairsTransactionServer(sqlLayer, testEmitter)
+	tests := map[string]struct {
+		input          *v1.NewTransactionReq
+		_context       context.Context
+		expectedOutput *v1.NewTransactionRes
+		expectedError  error
+	}{
 
+	}
 
 	os.Setenv("FlutterSecret", "FLWSECK_TEST-be6475503d295c1be0b10ee8e971671f-X")
 }

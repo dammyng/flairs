@@ -126,6 +126,20 @@ message WalletBalanceResponse{
 message TransactionResponse{
     Transaction transaction = 3;
 }
+
+message TfDepositeRequest{
+    string txRef = 3;
+    string walletId = 2;
+}
+
+message TransferRequest{
+    string FromWalletId = 3;
+    string ToWalletId = 2;
+    float Amount = 1;
+}
+message TransactResponse{
+    float amount = 3;
+}
 service FlairsTransactionService{
 
          // Create a new transaction
@@ -161,6 +175,24 @@ service FlairsTransactionService{
        rpc GetWalletTransactions (getWalletTransactionsRequest) returns (WalletBalanceResponse){
         option (google.api.http)={
             get: "/v1/transactions/w/{walletId}"
+        };
+    }
+
+     // Get wallets beloging to a particular user 
+     rpc TransactFtDeposite (TfDepositeRequest) returns (TransactResponse){
+        option (google.api.http)={
+            post: "/v1/transactions/transact-ft-deposite"
+            body:"*"
+
+        };
+    }
+
+     // Get wallets beloging to a particular user 
+     rpc TransactWalletTransfer (TransferRequest) returns (TransactResponse){
+        option (google.api.http)={
+            post: "/v1/transactions/transact-wallet-transfer"
+            body:"*"
+
         };
     }
 }
