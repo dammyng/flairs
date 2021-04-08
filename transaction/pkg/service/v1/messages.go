@@ -1,6 +1,8 @@
 package v1
 
 import (
+	"fmt"
+
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 )
@@ -14,3 +16,7 @@ var(
 	WalletNotFoundError = status.Errorf(codes.NotFound, "Wallet not found")
 	InternalError = status.Errorf(codes.Internal, "Internal service error")
 )
+
+func flutterError(data interface{}) error  {
+	return status.Errorf(codes.InvalidArgument, fmt.Sprintf("%v", data ) )
+}

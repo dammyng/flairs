@@ -1,0 +1,40 @@
+<form>
+    <script src="https://checkout.flutterwave.com/v3.js"></script>
+    <button type="button" onClick="makePayment()">Pay Now</button>
+  </form>
+  
+  <script>
+    function makePayment() {
+      FlutterwaveCheckout({
+        public_key: "FLWPUBK_TEST-ace21f6aa49fadd22136d4c40745941c-X",
+        tx_ref: "gghhh12345",
+        amount: 100,
+        currency: "NGN",
+        country: "NG",
+        payment_options: "card, mobilemoneyghana, ussd",
+        redirect_url: // specified redirect URL
+          "",
+        meta: {
+          consumer_id: 23,
+          consumer_mac: "92a3-912ba-1192a",
+        },
+        customer: {
+          email: "dammydarmy@gmail.com",
+          phone_number: "08069475323",
+          name: "dami tests",
+        },
+        callback: function (data) {
+          console.log(data);
+          alert(data)
+        },
+        onclose: function() {
+          // close modal
+        },
+        customizations: {
+          title: "My store",
+          description: "Payment for items in cart",
+          logo: "https://assets.piedpiper.com/logo.png",
+        },
+      });
+    }
+  </script>

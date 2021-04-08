@@ -99,10 +99,10 @@
         ]
       }
     },
-    "/v1/transactions/transact-ft-deposite": {
+    "/v1/transactions/ft/deposit": {
       "post": {
         "summary": "Get wallets beloging to a particular user",
-        "operationId": "FlairsTransactionService_TransactFtDeposite",
+        "operationId": "FlairsTransactionService_TransactFtDeposit",
         "responses": {
           "200": {
             "description": "A successful response.",
@@ -139,7 +139,7 @@
         ]
       }
     },
-    "/v1/transactions/transact-wallet-transfer": {
+    "/v1/transactions/tw/transfer": {
       "post": {
         "summary": "Get wallets beloging to a particular user",
         "operationId": "FlairsTransactionService_TransactWalletTransfer",

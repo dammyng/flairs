@@ -179,9 +179,9 @@ service FlairsTransactionService{
     }
 
      // Get wallets beloging to a particular user 
-     rpc TransactFtDeposite (TfDepositeRequest) returns (TransactResponse){
+     rpc TransactFtDeposit (TfDepositeRequest) returns (TransactResponse){
         option (google.api.http)={
-            post: "/v1/transactions/transact-ft-deposite"
+            post: "/v1/transactions/ft/deposit"
             body:"*"
 
         };
@@ -190,7 +190,7 @@ service FlairsTransactionService{
      // Get wallets beloging to a particular user 
      rpc TransactWalletTransfer (TransferRequest) returns (TransactResponse){
         option (google.api.http)={
-            post: "/v1/transactions/transact-wallet-transfer"
+            post: "/v1/transactions/tw/transfer"
             body:"*"
 
         };

@@ -1,25 +1,15 @@
 package v1
 
 import (
-	"context"
-	"encoding/json"
 	"fmt"
-	"io/ioutil"
 	"log"
-	"net/http"
-	"net/url"
 	"os"
-	"strings"
 	"testing"
-	"time"
-	v1internals "transaction/internals/v1"
 	"transaction/libs/setup"
 	v1 "transaction/pkg/api/v1"
 
-	"github.com/dgrijalva/jwt-go"
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/streadway/amqp"
-	"google.golang.org/grpc/metadata"
 
 	e_amqp "shared/events/amqp"
 
@@ -51,50 +41,14 @@ func initAMQP() {
 
 func TestAddnewTransaction(t *testing.T) {
 	clearTransactionTable()
-	ctx := context.Background()
-	sqlLayer := v1internals.NewMysqlLayer(testDb)
-	s := NewflairsTransactionServer(sqlLayer, testEmitter)
-	tests := map[string]struct {
-		input          *v1.NewTransactionReq
-		_context       context.Context
-		expectedOutput *v1.NewTransactionRes
-		expectedError  error
-	}{
-
-	}
+	testDb.AutoMigrate(&v1.Transaction{})
 
 	os.Setenv("FlutterSecret", "FLWSECK_TEST-be6475503d295c1be0b10ee8e971671f-X")
 }
 
 func TestAddnewTransaction_ok_case1(t *testing.T) {
 	clearTransactionTable()
-	//ctx := context.Background()
-	//sqlLayer := v1internals.NewMysqlLayer(testDb)
-	//s := NewflairsTransactionServer(sqlLayer, testEmitter)
-
 	
-	reqURL, _ := url.Parse("http://localhost:9000/v1/wallet")
-
-	// create request body
-	bodyContent := `{"userId":"usered", "accountBal":"0.54"}`
-
-	reqBody := ioutil.NopCloser(strings.NewReader(bodyContent))
-
-	req := &http.Request{
-		Method: "POST",
-		URL:    reqURL,
-		Header: map[string][]string{
-			"Content-Type":  {"application/json; charset=UTF-8"},
-			"Authorization": {""},
-		},
-		Body: reqBody,
-	}
-
-	_, err := HttpReq(req)
-	if err != nil {
-		t.Errorf("flairWalletServer. AddnewTransaction_ok cse 1 () could not create test wallet  error = %v, wantErr %v", err, "f")
-		return
-	}
 }
 
 func initDB() {

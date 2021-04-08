@@ -5,9 +5,9 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"io/ioutil"
 	"net"
 	"os"
-	"strings"
 	"time"
 
 	//"io/ioutil"
@@ -15,7 +15,6 @@ import (
 	"net/http"
 	"net/url"
 	"strconv"
-
 
 	amqp "shared/events/amqp"
 	v1internals "transaction/internals/v1"
@@ -188,8 +187,8 @@ func (f *flairsTransactionServer) GetWalletTransactions(ctx context.Context, req
 
 	return &wb, nil
 }
-func (f *flairsTransactionServer) TransactFtDeposite(ctx context.Context, req *v1.TfDepositeRequest) (*v1.TransactResponse, error) {
-
+func (f *flairsTransactionServer) TransactFtDeposit(ctx context.Context, req *v1.TfDepositeRequest) (*v1.TransactResponse, error) {
+	// jwt authentication
 	reqURL, _ := url.Parse(fmt.Sprintf("https://api.flutterwave.com/v3/transactions/%v/verify", req.TxRef))
 	flutterReq := &http.Request{
 		Method: "GET",
@@ -199,28 +198,34 @@ func (f *flairsTransactionServer) TransactFtDeposite(ctx context.Context, req *v
 			"Authorization": {"Bearer " + os.Getenv("FlutterSecret")},
 		},
 	}
-	result, err := HttpReq(flutterReq)
 
+	result, err := HttpReq(flutterReq)
+	defer result.Body.Close()
+	bytes, err := ioutil.ReadAll(result.Body)
+	if err != nil {
+		log.Fatalln(err)
+	}
+
+	var response map[string]interface{}
+	err = json.Unmarshal(bytes, &response)
 	if err != nil {
 		return nil, err
 	}
-	if result.StatusCode > 299 {
-		return nil, err
+
+	if response["status"] == "error" {
+		return nil, flutterError(response["message"])
 	}
-	var response map[string]string
-	var data map[string]string
 
-	err = json.NewDecoder(result.Body).Decode(response)
-	err = json.NewDecoder(strings.NewReader(response["data"])).Decode(data)
+	data := response["data"].(map[string]interface{})
 
-	amt, _ := strconv.ParseFloat(data["Amount"], 8)
+	amt, _ := strconv.ParseFloat(fmt.Sprintf("%f", data["amount"]), 8)
 
 	newTransaction := v1.Transaction{
 		ID:         uuid.NewV4().String(),
 		Amount:     amt,
 		Memo:       "Wallet funds",
 		WalletId:   req.WalletId,
-		Status:     response["status"],
+		Status:     response["status"].(string),
 		Currency:   "",
 		TxRef:      req.TxRef,
 		TransType:  v1.Transaction_CREDIT,
@@ -230,6 +235,7 @@ func (f *flairsTransactionServer) TransactFtDeposite(ctx context.Context, req *v
 		UpdatedAt:  time.Now().Format(time.RFC3339),
 	}
 
+	// transaction ID needs to be unique
 	_, err = f.Db.CreateTransaction(&newTransaction)
 	if err != nil {
 		return nil, InternalError
@@ -239,6 +245,14 @@ func (f *flairsTransactionServer) TransactFtDeposite(ctx context.Context, req *v
 }
 
 func (f *flairsTransactionServer) TransactWalletTransfer(ctx context.Context, req *v1.TransferRequest) (*v1.TransactResponse, error) {
+	// jwt authentication
+
+	// Get to wallet + balance
+	// validate claim ID with from wallet ID
+	// Validate balance > amount
+	// Validate To wallet ID
+	// Create credit transaction
+	// Create debit transaction
 	return nil, nil
 }
 
@@ -253,7 +267,16 @@ func (f *flairsTransactionServer) TransactWalletTransfer(ctx context.Context, re
 //curl --location --request GET 'https://api.flutterwave.com/v3/transactions/123456/verify' \
 //--header 'Content-Type: application/json' \
 //--header 'Authorization: Bearer {{SEC_KEY}}'
-
+// ismobile=34&status=successful&tx_ref=12345&transaction_id=2015988
+/*
+amount: 100
+currency: "NGN"
+customer: Object { name: "dami tests", email: "dammydarmy@gmail.com", phone_number: "08069475323" }
+flw_ref: "173501617848937667"
+status: "successful"
+transaction_id: 2016018
+tx_ref: "gghhh12345"
+*/
 func HttpReq(req *http.Request) (*http.Response, error) {
 
 	var netTransport = &http.Transport{
